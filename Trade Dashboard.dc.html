@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    /* ── COLOR PALETTE — single source of truth. Change a value here to retheme the whole dashboard. ── */
+    :root {
+      --page: #fdfcdc;          /* app background (cream) */
+      --card: #ffffff;          /* cards / surfaces */
+      --panel: #f9fafc;         /* inset panels */
+      --ink: #2b2b39;           /* headings */
+      --ink-2: #3a3a52;         /* body text */
+      --muted: #8a8a9e;         /* muted text */
+      --muted-2: #9a9ab0;       /* fainter labels */
+      --faint: #b3b3c4;         /* faint text */
+      --faint-2: #c3c3d0;       /* placeholders */
+      --border: #eef0f4;        /* default border */
+      --border-2: #e6e8ee;      /* control border */
+      --border-3: #f0f0f4;      /* track / divider */
+      --brand: #0081a7;         /* primary teal */
+      --brand-2: #00afb9;       /* cyan accent */
+      --brand-deep: #015a72;    /* deep teal (gradient end) */
+      --profit: #16794d;        /* profit / bank */
+      --profit-2: #1c8c5a;      /* profit gradient */
+      --danger: #f07167;        /* expenses / sell */
+      --loss: #c1443c;          /* loss */
+      --error: #d1495b;         /* validation error */
+      --peach: #fed9b7;         /* highlight accent */
+      --tint-red: #fbeceb;      /* red tint bg */
+      --tint-red-2: #fdecee;    /* red tint bg (alt) */
+      --tint-green: #e9f9f1;    /* green tint bg */
+      --tint-green-2: #a7e3c8;  /* green tint border */
+      --onbrand-red: #ffd9d3;   /* soft red on teal bg */
+      --pace-ok: #7fe3c0;       /* on-pace / healthy */
+      --pace-warn: #ffd9a8;     /* caution */
+      --pace-bad: #ffb3ab;      /* behind / depleted */
+      /* ── secondary text, tints & chart chrome ── */
+      --ink-3: #5a5a6e;         /* soft body text */
+      --muted-3: #6a6a80;       /* muted control text */
+      --tax: #5b21b6;           /* quarterly-tax purple */
+      --tax-accent: #7c3aed;    /* quarterly-tax accent border */
+      --error-border: #f5c2c9;  /* error banner border */
+      --error-text: #a3374a;    /* error banner text */
+      --border-4: #f4f4f7;      /* faint row divider */
+      --toggle: #f0f1f5;        /* segmented-control track */
+      --panel-2: #f7f8fb;       /* control panel bg */
+      --brand-tint: #e0f4f6;    /* teal icon chip bg */
+      --profit-tint: #e2f5ef;   /* green icon chip bg */
+      --profit-3: #2bb596;      /* positive-edge text */
+      --danger-soft: #f4a3a3;   /* soft warning dot */
+      --axis: #d9dbe3;          /* chart axis lines */
+      --grid-alt: #e0e2ea;      /* chart gridlines (alt) */
+    }
+    /* ── VARIANT B · Warm (purple / crimson / orange / yellow) ── */
+    .theme-warm {
+      --page: #fff7e6; --panel: #fdf6e7; --panel-2: #fbf2e2; --toggle: #f3e8d2;
+      --brand: #aa1c41; --brand-2: #e68457; --brand-deep: #5e244e; --brand-tint: #f7dfe4;
+      --profit: #c56a2c; --profit-2: #e68457; --profit-3: #c56a2c; --profit-tint: #fbe7d6;
+      --danger: #aa1c41; --danger-soft: #e68457; --loss: #8e1636; --error: #aa1c41;
+      --peach: #ffe8b4;
+      --tint-red: #f7e1e6; --tint-red-2: #f9e6ea; --tint-green: #fbe7d6; --tint-green-2: #f0c9a8;
+      --onbrand-red: #f5c9d2; --error-border: #e8b4c0; --error-text: #7e1230;
+      --pace-ok: #e68457; --pace-warn: #ffe8b4; --pace-bad: #e89b8a;
+      --tax: #5e244e; --tax-accent: #7a3468;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .navrow:hover { background: rgba(255,255,255,0.10); }
+    .reprow:hover { box-shadow: 0 8px 24px rgba(0,129,167,0.10); }
+    .lnk:hover { opacity: 0.7; }
+    .stratchip:hover { border-color: var(--brand); color: var(--ink); }
+    input[type=range].srange { -webkit-appearance: none; width: 100%; height: 4px; background: var(--border-2); border-radius: 3px; margin-top: 12px; outline: none; }
+    input[type=range].srange::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); cursor: pointer; box-shadow: 0 1px 4px rgba(0,129,167,0.4); }
+    input[type=range].srange::-moz-range-thumb { width: 16px; height: 16px; border: none; border-radius: 50%; background: var(--brand); cursor: pointer; }
+    input.snum { font-family: 'Poppins',sans-serif; font-size: 24px; font-weight: 700; color: var(--ink); width: 72px; background: none; border: none; outline: none; }
+    input.snum::-webkit-outer-spin-button, input.snum::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input.alnum { font-family: 'Poppins',sans-serif; font-size: 14px; font-weight: 600; color: var(--ink); width: 46px; background: none; border: none; outline: none; text-align: right; }
+    input.alnum:disabled { color: var(--muted-2); }
+    input.alnum::-webkit-outer-spin-button, input.alnum::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input.exptext { font-family: 'Poppins',sans-serif; font-size: 13.5px; font-weight: 500; color: var(--ink-2); background: none; border: none; outline: none; width: 100%; min-width: 0; padding: 4px 0; }
+    input.exptext::placeholder { color: var(--faint-2); }
+    input.expnum { font-family: 'Poppins',sans-serif; font-size: 14px; font-weight: 600; color: var(--danger); background: none; border: none; outline: none; width: 60px; text-align: right; }
+    input.expnum::-webkit-outer-spin-button, input.expnum::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .expdel:hover { background: var(--tint-red) !important; color: var(--danger) !important; }
+    input.etftick { font-family: 'Poppins',sans-serif; font-size: 13.5px; font-weight: 700; color: var(--ink); background: none; border: none; outline: none; width: 58px; }
+    input.etfname { font-family: 'Poppins',sans-serif; font-size: 13.5px; font-weight: 500; color: var(--muted-2); background: none; border: none; outline: none; flex: 1; min-width: 0; }
+    input.etfnote { font-family: 'Poppins',sans-serif; font-size: 11.5px; color: var(--muted-2); background: none; border: none; outline: none; width: 100%; padding: 2px 0; }
+    input.etftick:disabled, input.etfname:disabled, input.etfnote:disabled { color: inherit; }
+    input.etfnote::placeholder, input.etfname::placeholder { color: var(--faint-2); }
+    select.taxbasis { font-family: 'Poppins',sans-serif; font-size: 11.5px; color: var(--muted-2); background: none; border: none; outline: none; cursor: pointer; padding: 2px 0; margin-top: 2px; }
+  </style>
+</helmet>
+<div style="width:1440px;background:var(--page);padding:36px;font-family:'Poppins',-apple-system,sans-serif;color:var(--ink)">
+  <div style="display:flex;flex-direction:column">
+
+    <header style="display:flex;align-items:center;gap:30px;background:linear-gradient(100deg,var(--brand-2) 0%,var(--brand) 100%);border-radius:24px;padding:15px 28px;box-shadow:0 18px 40px rgba(0,90,120,0.26);margin-bottom:24px">
+      <nav style="display:flex;align-items:center;gap:6px">
+        <div class="navrow" onClick="{{ nav.dashboard.onClick }}" style="display:flex;align-items:center;gap:10px;padding:11px 18px;border-radius:13px;cursor:pointer;{{ nav.dashboard.row }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+          <span style="font-size:14.5px">Dashboard</span>
+        </div>
+        <div class="navrow" onClick="{{ nav.currentday.onClick }}" style="display:flex;align-items:center;gap:10px;padding:11px 18px;border-radius:13px;cursor:pointer;{{ nav.currentday.row }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="5"></line><line x1="12" y1="19" x2="12" y2="22"></line><line x1="2" y1="12" x2="5" y2="12"></line><line x1="19" y1="12" x2="22" y2="12"></line><line x1="4.9" y1="4.9" x2="7" y2="7"></line><line x1="17" y1="17" x2="19.1" y2="19.1"></line><line x1="4.9" y1="19.1" x2="7" y2="17"></line><line x1="17" y1="7" x2="19.1" y2="4.9"></line></svg>
+          <span style="font-size:14.5px">Current day strategy</span>
+        </div>
+        <div class="navrow" onClick="{{ nav.activepositions.onClick }}" style="display:flex;align-items:center;gap:10px;padding:11px 18px;border-radius:13px;cursor:pointer;{{ nav.activepositions.row }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="12" y="8" width="3" height="10"></rect><rect x="17" y="4" width="3" height="14"></rect></svg>
+          <span style="font-size:14.5px">Active positions</span>
+        </div>
+        <div class="navrow" onClick="{{ nav.analytics.onClick }}" style="display:flex;align-items:center;gap:10px;padding:11px 18px;border-radius:13px;cursor:pointer;{{ nav.analytics.row }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="4" y2="12"></line><line x1="10" y1="20" x2="10" y2="4"></line><line x1="16" y1="20" x2="16" y2="9"></line><line x1="20" y1="20" x2="20" y2="14"></line></svg>
+          <span style="font-size:14.5px">Analytics</span>
+        </div>
+        <div class="navrow" onClick="{{ nav.journal.onClick }}" style="display:flex;align-items:center;gap:10px;padding:11px 18px;border-radius:13px;cursor:pointer;{{ nav.journal.row }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><line x1="9" y1="13" x2="15" y2="13"></line></svg>
+          <span style="font-size:14.5px">Journal</span>
+        </div>
+        <div class="navrow" onClick="{{ nav.strategies.onClick }}" style="display:flex;align-items:center;gap:10px;padding:11px 18px;border-radius:13px;cursor:pointer;{{ nav.strategies.row }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.5l2.9 5.9 6.6.95-4.75 4.63 1.12 6.52L12 17.9 6.13 21l1.12-6.52L2.5 9.85l6.6-.95z"></path></svg>
+          <span style="font-size:14.5px">Strategies</span>
+        </div>
+        <div class="navrow" onClick="{{ nav.fundmgmt.onClick }}" style="display:flex;align-items:center;gap:10px;padding:11px 18px;border-radius:13px;cursor:pointer;{{ nav.fundmgmt.row }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"></rect><circle cx="12" cy="12" r="2.5"></circle><path d="M6 9v6M18 9v6"></path></svg>
+          <span style="font-size:14.5px">Fund management</span>
+        </div>
+      </nav>
+
+      <div style="margin-left:auto">
+        <button style="border:none;background:var(--danger);color:var(--card);font-family:'Poppins';font-weight:600;font-size:13.5px;padding:11px 18px;border-radius:13px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 8px 18px rgba(240,113,103,0.35)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg>Import trades</button>
+      </div>
+    </header>
+
+    <main style="background:var(--card);border-radius:30px;padding:26px 34px 28px;box-shadow:0 20px 50px rgba(40,50,80,0.08)">
+
+      <div style="{{ stratStyle }}">
+        <div style="margin-bottom:18px">
+          <div style="font-family:'Poppins',monospace;font-size:11px;color:var(--muted-2);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px">SPX · Credit strategies</div>
+          <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.01em">Morning decision tree</h1>
+          <p style="margin:7px 0 0;font-size:13.5px;color:var(--muted)">Set today's conditions — get the right strategy, setup, and expected credit.</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-bottom:18px">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div style="font-size:11px;color:var(--muted-2);letter-spacing:0.08em;text-transform:uppercase;font-weight:600">Market news &amp; catalysts</div>
+              <span style="font-size:11px;color:var(--brand);font-weight:600">{{ s.newsDate }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <sc-for list="{{ s.news }}" as="n" hint-placeholder-count="4">
+                <div style="display:flex;gap:11px;align-items:flex-start">
+                  <span style="{{ n.tagStyle }}">{{ n.tag }}</span>
+                  <div style="flex:1">
+                    <div style="font-size:13px;color:var(--ink-2);line-height:1.45;font-weight:500">{{ n.text }}</div>
+                    <div style="font-size:11px;color:var(--faint);margin-top:1px">{{ n.time }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:linear-gradient(150deg,var(--brand),var(--brand-deep));border-radius:14px;padding:18px 20px;color:var(--card);display:flex;flex-direction:column">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.85;font-weight:600;margin-bottom:4px">Margin cushion</div>
+            <div style="font-size:34px;font-weight:700;line-height:1.1">{{ s.cushion.remaining }}</div>
+            <div style="font-size:12px;opacity:0.85;margin-top:2px">Remaining after this month's losses</div>
+            <div style="height:7px;background:rgba(255,255,255,0.22);border-radius:5px;margin:14px 0 13px;overflow:hidden"><div style="{{ s.cushion.barStyle }}"></div></div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:12.5px;opacity:0.9">Carried over (prior months)</span>
+                <span style="font-size:13.5px;font-weight:700">{{ s.cushion.carried }}</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:12.5px;opacity:0.9">Losses this month ({{ s.cushion.month }})</span>
+                <span style="font-size:13.5px;font-weight:700;color:var(--onbrand-red)">−{{ s.cushion.losses }}</span>
+              </div>
+              <div style="font-size:11px;opacity:0.7;margin-top:2px">{{ s.cushion.breakdown }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 18px">
+            <div style="font-size:11px;color:var(--muted-2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;font-weight:600">VIX level</div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <input class="snum" type="number" min="8" max="80" step="0.5" value="{{ s.vix }}" onInput="{{ s.onVix }}">
+              <span style="font-size:12.5px;color:var(--muted-2)">pts</span>
+            </div>
+            <input class="srange" type="range" min="8" max="60" step="0.5" value="{{ s.vix }}" onInput="{{ s.onVix }}">
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 18px">
+            <div style="font-size:11px;color:var(--muted-2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;font-weight:600">Overnight gap</div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <input class="snum" type="number" min="-3" max="3" step="0.1" value="{{ s.gap }}" onInput="{{ s.onGap }}">
+              <span style="font-size:12.5px;color:var(--muted-2)">%</span>
+            </div>
+            <input class="srange" type="range" min="-3" max="3" step="0.1" value="{{ s.gap }}" onInput="{{ s.onGap }}">
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--muted-2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:9px;font-weight:600">Morning bias</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px">
+          <sc-for list="{{ s.biasChips }}" as="c" hint-placeholder-count="4">
+            <button class="stratchip" onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+          </sc-for>
+        </div>
+
+        <div style="font-size:11px;color:var(--muted-2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:9px;font-weight:600">Scheduled events today</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:22px">
+          <sc-for list="{{ s.eventChips }}" as="c" hint-placeholder-count="5">
+            <button class="stratchip" onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+          </sc-for>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:0 0 20px"></div>
+
+        <div style="border-radius:16px;padding:22px 24px;margin-bottom:14px;border:1px solid {{ s.res.border }};background:{{ s.res.bg }};position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:{{ s.res.accent }}"></div>
+          <div style="font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:7px;color:{{ s.res.accent }};font-weight:600">Today's strategy</div>
+          <div style="font-size:22px;font-weight:700;letter-spacing:-0.01em;margin-bottom:11px;color:{{ s.res.accent }}">{{ s.res.strategy }}</div>
+          <div style="font-size:13.5px;color:var(--ink-3);line-height:1.65;margin-bottom:16px">{{ s.res.why }}</div>
+          <div style="display:flex;gap:28px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;font-weight:600">Expected credit</div>
+              <div style="font-size:14px;font-weight:700;color:var(--ink)">{{ s.res.credit }}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;font-weight:600">Max loss</div>
+              <div style="font-size:14px;font-weight:700;color:var(--ink)">{{ s.res.maxLoss }}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;font-weight:600">Historical win rate</div>
+              <div style="font-size:14px;font-weight:700;color:var(--ink)">{{ s.res.winRate }}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;font-weight:600">Entry window</div>
+              <div style="font-size:14px;font-weight:700;color:var(--ink)">{{ s.res.window }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
+          <div style="flex:1;min-width:280px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px">
+            <div style="font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;font-weight:600">How to set it up</div>
+            <sc-for list="{{ s.setupRows }}" as="r" hint-placeholder-count="6">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span style="font-size:13px;color:var(--muted)">{{ r.k }}</span>
+                <span style="font-size:12.5px;color:var(--ink);font-weight:500;text-align:right">{{ r.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:1;min-width:280px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px">
+            <div style="font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;font-weight:600">Decision logic</div>
+            <sc-for list="{{ s.trace }}" as="t" hint-placeholder-count="4">
+              <div style="display:flex;gap:10px;font-size:12.5px;color:var(--ink-3);margin-bottom:9px;line-height:1.5">
+                <div style="width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;background:{{ t.dot }}"></div>
+                <div>{{ t.text }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="margin-top:22px;font-size:10.5px;color:var(--faint);text-align:center;letter-spacing:0.06em">Not financial advice · track every trade · size to your account</div>
+      </div>
+
+      <div style="{{ posStyle }}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:22px">
+          <div>
+            <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.01em">Active positions</h1>
+            <p style="margin:7px 0 0;font-size:13.5px;color:var(--muted)">Open option trades · live marks · unrealized P&amp;L</p>
+          </div>
+          <div style="display:flex;gap:22px">
+            <div style="text-align:right"><div style="font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Open</div><div style="font-size:22px;font-weight:700">{{ posSummary.count }}</div></div>
+            <div style="text-align:right"><div style="font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Unrealized P&amp;L</div><div style="font-size:22px;font-weight:700;{{ posSummary.unrealColor }}">{{ posSummary.unreal }}</div></div>
+            <div style="text-align:right"><div style="font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">At risk</div><div style="font-size:22px;font-weight:700;color:var(--danger)">{{ posSummary.atRisk }}</div></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.6fr 0.8fr 0.8fr 0.9fr 0.6fr 0.7fr 1fr;gap:14px;padding:0 22px 10px;font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">
+          <span>Position</span><span>Entry credit</span><span>Current mark</span><span>Unrealized</span><span>DTE</span><span>Delta</span><span>Status</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ positions }}" as="p" hint-placeholder-count="5">
+            <div class="reprow" style="display:grid;grid-template-columns:1.6fr 0.8fr 0.8fr 0.9fr 0.6fr 0.7fr 1fr;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 22px;box-shadow:0 4px 14px rgba(40,50,80,0.04)">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:var(--card);{{ p.badge }}">{{ p.under }}</div>
+                <div><div style="font-weight:600;font-size:14.5px;color:var(--ink-2)">{{ p.leg }}</div><div style="font-size:12px;color:var(--muted-2)">{{ p.struct }}</div></div>
+              </div>
+              <span style="font-size:14px;font-weight:500;color:var(--ink-2)">{{ p.credit }}</span>
+              <span style="font-size:14px;color:var(--muted)">{{ p.mark }}</span>
+              <span style="font-size:15px;font-weight:700;{{ p.unrealColor }}">{{ p.unreal }}</span>
+              <span style="font-size:13px;color:var(--muted)">{{ p.dte }}</span>
+              <span style="font-size:13px;color:var(--muted)">{{ p.delta }}</span>
+              <span style="{{ p.statusStyle }}">{{ p.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="{{ fundStyle }}">
+        <sc-if value="{{ fund.dirty }}" hint-placeholder-val="{{ false }}">
+          <div style="position:fixed;right:34px;bottom:30px;z-index:40;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border-2);box-shadow:0 10px 34px rgba(20,20,50,0.18);border-radius:14px;padding:11px 13px 11px 17px">
+            <span style="font-size:13px;color:var(--muted-3);font-weight:500">Unsaved changes</span>
+            <button onClick="{{ fund.onDiscard }}" style="border:1px solid var(--border-2);background:var(--card);color:var(--muted-3);font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:10px;cursor:pointer">Discard</button>
+            <button onClick="{{ fund.onUpdate }}" style="border:none;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:var(--card);font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;box-shadow:0 3px 10px rgba(0,129,167,0.35)">Update</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ fund.saved }}" hint-placeholder-val="{{ false }}">
+          <div style="position:fixed;right:34px;bottom:30px;z-index:40;display:flex;align-items:center;gap:9px;background:var(--tint-green);border:1px solid var(--tint-green-2);box-shadow:0 8px 26px rgba(20,60,40,0.14);border-radius:14px;padding:11px 18px">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--profit)" stroke-width="2.4" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span style="font-size:13.5px;color:var(--profit);font-weight:600">Changes saved</span>
+          </div>
+        </sc-if>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:16px">
+          <div>
+            <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.01em">Fund management</h1>
+            <p style="margin:7px 0 0;font-size:13.5px;color:var(--muted)">End-of-month profit waterfall · taxes, expenses &amp; allocation</p>
+          </div>
+          <div style="display:flex;gap:7px;align-items:center">
+            <sc-for list="{{ fund.monthTabs }}" as="m" hint-placeholder-count="3">
+              <button onClick="{{ m.onClick }}" style="{{ m.style }}">{{ m.label }}</button>
+            </sc-for>
+            <select value="{{ fund.picker.value }}" onChange="{{ fund.picker.onChange }}" style="{{ fund.picker.style }}">
+              <option value="" disabled="{{ true }}">Choose month…</option>
+              <sc-for list="{{ fund.picker.opts }}" as="o" hint-placeholder-count="24">
+                <option value="{{ o.value }}">{{ o.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+        </div>
+
+        <div style="{{ fund.curBandStyle }}">
+          <div style="{{ fund.attn.wrap }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ fund.attn.iconColor }}" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700;color:{{ fund.attn.titleColor }}">{{ fund.attn.title }}</div>
+              <sc-if value="{{ fund.attn.has }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
+                  <sc-for list="{{ fund.attn.items }}" as="it" hint-placeholder-count="1">
+                    <div style="font-size:12.5px;color:{{ fund.attn.itemColor }}">• {{ it }}</div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+          <div style="border-radius:18px;padding:24px 26px;margin-bottom:16px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:var(--card)">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px">
+              <div>
+                <div style="font-size:13px;opacity:0.9;text-transform:uppercase;letter-spacing:0.05em">Month to date · {{ fund.month }}</div>
+                <div style="font-size:40px;font-weight:700;line-height:1.1;margin-top:4px">{{ fund.mtd.achieved }}</div>
+                <div style="font-size:12.5px;opacity:0.9;margin-top:2px">of {{ fund.mtd.target }} target · {{ fund.mtd.daysLabel }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:22px">
+                <div style="text-align:right">
+                  <div style="font-size:12px;opacity:0.85">Projected close</div>
+                  <div style="font-size:22px;font-weight:700">{{ fund.mtd.projected }}</div>
+                </div>
+                <div style="position:relative;width:76px;height:76px">
+                  <svg width="76" height="76" viewBox="0 0 76 76" style="transform:rotate(-90deg)"><circle cx="38" cy="38" r="32" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="6"></circle><circle cx="38" cy="38" r="32" fill="none" stroke="var(--peach)" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ fund.mtd.ringDash }}"></circle></svg>
+                  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><span style="font-size:16px;font-weight:700">{{ fund.mtd.pct }}</span></div>
+                </div>
+              </div>
+            </div>
+            <div style="height:8px;background:rgba(255,255,255,0.22);border-radius:5px;margin:18px 0 10px;overflow:hidden"><div style="{{ fund.mtd.barStyle }}"></div></div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><span style="{{ fund.mtd.statusDot }}"></span>{{ fund.mtd.status }}</div>
+          </div>
+
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin-bottom:16px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px"><h3 style="margin:0;font-size:16px;font-weight:600">Trading calendar · {{ fund.month }}</h3><span style="font-size:12px;color:var(--muted-2)">{{ fund.holidays.note }}</span></div>
+            <sc-for list="{{ fund.holidays.list }}" as="h" hint-placeholder-count="1">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-3)">
+                <span style="{{ h.dot }}"></span>
+                <div style="flex:1"><div style="font-size:13.5px;color:var(--ink-2);font-weight:600">{{ h.name }}</div><div style="font-size:11.5px;color:var(--muted-2)">{{ h.date }}</div></div>
+                <span style="{{ h.tagStyle }}">{{ h.tag }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin-bottom:16px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><h3 style="margin:0;font-size:16px;font-weight:600">Daily reports · {{ fund.month }}</h3><span style="font-size:12px;color:var(--muted-2)">Realized profit by day</span></div>
+            <sc-for list="{{ fund.daily }}" as="d" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border-3)">
+                <div><div style="font-size:13.5px;color:var(--ink-2);font-weight:600">{{ d.date }}</div><div style="font-size:11.5px;color:var(--muted-2)">{{ d.sub }}</div></div>
+                <span style="font-size:16px;font-weight:700;{{ d.pnlColor }}">{{ d.pnl }}</span>
+              </div>
+            </sc-for>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px"><span style="font-size:13.5px;font-weight:600;color:var(--ink-2)">Month to date</span><span style="font-size:16px;font-weight:700;color:var(--profit)">{{ fund.mtd.achieved }}</span></div>
+          </div>
+        </div>
+
+        <div style="{{ fund.grossBandStyle }};border-radius:18px;padding:22px 26px;margin-bottom:12px;background:{{ fund.grossBg }};color:var(--card);align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div>
+            <div style="font-size:13px;opacity:0.9;text-transform:uppercase;letter-spacing:0.05em">Gross realized profit · {{ fund.month }}</div>
+            <div style="font-size:40px;font-weight:700;line-height:1.1;margin-top:4px">{{ fund.gross }}</div>
+          </div>
+          <div style="display:flex;gap:30px">
+            <div><div style="font-size:12px;opacity:0.85">Total tax</div><div style="font-size:22px;font-weight:700">{{ fund.totalTax }}</div></div>
+            <div><div style="font-size:12px;opacity:0.85">After-tax</div><div style="font-size:22px;font-weight:700">{{ fund.afterTax }}</div></div>
+            <div><div style="font-size:12px;opacity:0.85">Remaining</div><div style="font-size:22px;font-weight:700">{{ fund.remaining }}</div></div>
+          </div>
+        </div>
+
+        <div style="{{ fund.carryStyle }};background:var(--card);border:1px solid var(--border);border-left:4px solid {{ fund.carryAccent }};border-radius:14px;padding:12px 18px;margin-bottom:12px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <h3 style="margin:0;font-size:14px;font-weight:600;color:{{ fund.carryAccent }};display:inline">{{ fund.carryTitle }}</h3>
+              <span style="font-size:12px;color:var(--muted);margin-left:8px">{{ fund.carrySub }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:22px">
+              <div style="{{ fund.carryInShow }};flex-direction:column;align-items:flex-end">
+                <span style="font-size:10.5px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.04em">Carried in</span>
+                <span style="font-size:15px;font-weight:700;color:var(--loss)">{{ fund.carryInVal }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end">
+                <span style="font-size:10.5px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.04em">Carried forward</span>
+                <span style="font-size:15px;font-weight:700;{{ fund.carryOutColor }}">{{ fund.carryOutVal }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="{{ fund.compFlex }};border-radius:16px;padding:20px 26px;margin-bottom:12px;background:{{ fund.transferBg }};color:{{ fund.transferColor }};align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+          <div>
+            <div style="font-size:12.5px;opacity:0.92;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">To transfer to bank</div>
+            <div style="font-size:12.5px;opacity:0.85;margin-top:4px">{{ fund.transferSub }}</div>
+            <div style="{{ fund.formulaStyle }}">{{ fund.formulaChip }}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:38px;font-weight:700;line-height:1">{{ fund.toBank }}</div>
+            <div style="font-size:12px;opacity:0.85;margin-top:2px">{{ fund.cushionShareNote }}</div>
+            <div style="font-size:12px;opacity:0.85;margin-top:1px">{{ fund.reinvestNote }}</div>
+          </div>
+        </div>
+
+        <div style="{{ fund.quarterStyle }};background:var(--card);border:1px solid var(--border);border-left:4px solid var(--tax-accent);border-radius:16px;padding:18px 22px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+            <div>
+              <h3 style="margin:0;font-size:16px;font-weight:600;color:var(--tax)">Quarterly estimated tax owed</h3>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">{{ fund.quarterLabel }}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:10.5px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.04em">Total owed this quarter</div>
+              <div style="font-size:26px;font-weight:700;color:var(--tax);line-height:1.1">{{ fund.quarterTotal }}</div>
+            </div>
+          </div>
+          <div style="{{ fund.qRows.0.show }};align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid var(--border-3)">
+            <span style="font-size:13px;color:var(--ink-2);font-weight:500">{{ fund.qRows.0.label }}</span>
+            <span style="font-size:14px;font-weight:600;color:var(--danger)">−{{ fund.qRows.0.v }}</span>
+          </div>
+          <div style="{{ fund.qRows.1.show }};align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid var(--border-3)">
+            <span style="font-size:13px;color:var(--ink-2);font-weight:500">{{ fund.qRows.1.label }}</span>
+            <span style="font-size:14px;font-weight:600;color:var(--danger)">−{{ fund.qRows.1.v }}</span>
+          </div>
+          <div style="{{ fund.qRows.2.show }};align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid var(--border-3)">
+            <span style="font-size:13px;color:var(--ink-2);font-weight:500">{{ fund.qRows.2.label }}</span>
+            <span style="font-size:14px;font-weight:600;color:var(--danger)">−{{ fund.qRows.2.v }}</span>
+          </div>
+          <div style="{{ fund.qRows.3.show }};align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid var(--border-3)">
+            <span style="font-size:13px;color:var(--ink-2);font-weight:500">{{ fund.qRows.3.label }}</span>
+            <span style="font-size:14px;font-weight:600;color:var(--danger)">−{{ fund.qRows.3.v }}</span>
+          </div>
+        </div>
+
+        <div style="{{ fund.compFlex }};gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:300px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="margin:0;font-size:16px;font-weight:600">Taxes owed</h3>
+              <span style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:12px;color:var(--muted-2)">eff. {{ fund.effRate }}</span>
+                <button onClick="{{ fund.onAddTax }}" style="display:flex;align-items:center;gap:5px;border:1px solid var(--border-2);background:var(--panel);color:var(--brand);font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;padding:6px 11px;border-radius:9px;cursor:pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add</button>
+              </span>
+            </div>
+            <sc-for list="{{ fund.taxRows }}" as="t" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-3)">
+                <div style="min-width:0;flex:1">
+                  <input class="exptext" type="text" value="{{ t.name }}" onInput="{{ t.onName }}" placeholder="Tax name">
+                  <select class="taxbasis" value="{{ t.basis }}" onChange="{{ t.onBasis }}">
+                    <option value="60">60% of profit</option>
+                    <option value="40">40% of profit</option>
+                    <option value="100">Total profit</option>
+                  </select>
+                </div>
+                <span style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+                  <span style="{{ t.editWrap }}"><input class="alnum" type="number" min="0" max="100" step="0.1" value="{{ t.rate }}" onInput="{{ t.onRate }}"><span style="font-size:12.5px;color:var(--muted-2);font-weight:500">%</span></span>
+                  <span style="font-size:14px;font-weight:600;color:var(--danger);min-width:56px;text-align:right">−{{ t.v }}</span>
+                  <button class="expdel" onClick="{{ t.onDelete }}" title="Remove tax" style="flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:none;background:none;color:var(--faint-2);cursor:pointer;border-radius:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button>
+                </span>
+              </div>
+            </sc-for>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px"><span style="font-size:13.5px;font-weight:600;color:var(--ink-2)">After-tax profit (X)</span><span style="font-size:16px;font-weight:700;color:var(--profit)">{{ fund.afterTax }}</span></div>
+          </div>
+
+          <div style="flex:1;min-width:300px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <h3 style="margin:0;font-size:16px;font-weight:600">Fixed expenses</h3>
+              <button onClick="{{ fund.onAddExpense }}" style="display:flex;align-items:center;gap:5px;border:1px solid var(--border-2);background:var(--panel);color:var(--brand);font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;padding:6px 11px;border-radius:9px;cursor:pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add</button>
+            </div>
+            <sc-for list="{{ fund.expenseRows }}" as="e" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border-3)">
+                <input class="exptext" type="text" value="{{ e.name }}" onInput="{{ e.onName }}" placeholder="Expense name">
+                <span style="font-size:14px;font-weight:600;color:var(--danger);flex-shrink:0">−$</span>
+                <input class="expnum" type="number" min="0" step="1" value="{{ e.amt }}" onInput="{{ e.onAmt }}">
+                <button class="expdel" onClick="{{ e.onDelete }}" title="Remove expense" style="flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:none;background:none;color:var(--faint-2);cursor:pointer;border-radius:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button>
+              </div>
+            </sc-for>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px"><span style="font-size:13.5px;font-weight:600;color:var(--ink-2)">Remaining (Y)</span><span style="font-size:16px;font-weight:700;color:var(--brand)">{{ fund.remaining }}</span></div>
+          </div>
+        </div>
+
+        <div style="{{ fund.compBlock }};background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin-top:12px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px"><h3 style="margin:0;font-size:16px;font-weight:600">Allocation of remaining (Y)</h3><span style="font-size:12px;color:var(--muted-2)">{{ fund.remaining }}</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="{{ fund.alloc.lockStyle }}">{{ fund.alloc.lockLabel }}</span>
+            <span style="{{ fund.alloc.totalStyle }}">{{ fund.alloc.totalLabel }}</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--muted-2);margin-bottom:18px">The margin-cushion set-aside carries into next month's buffer — <span class="lnk" onClick="{{ fund.onSeeCushion }}" style="color:var(--brand);font-weight:600;cursor:pointer">view on Current day strategy →</span></div>
+          <sc-if value="{{ fund.chart.show }}" hint-placeholder-val="{{ true }}">
+            <div style="{{ fund.chart.wrapStyle }}">
+              <div style="flex:0 0 58%;min-width:280px;display:flex;align-items:center;justify-content:center">
+                <div style="position:relative;height:98%;aspect-ratio:1;max-width:100%;min-height:320px;display:flex;align-items:center;justify-content:center">
+                  <svg viewBox="0 0 200 200" style="width:100%;height:100%">
+                    <sc-for list="{{ fund.chart.donutSegs }}" as="s" hint-placeholder-count="6">
+                      <path d="{{ s.d }}" style="{{ s.style }}" onMouseEnter="{{ s.onEnter }}" onMouseLeave="{{ s.onLeave }}"></path>
+                    </sc-for>
+                    <sc-for list="{{ fund.chart.donutLabels }}" as="l" hint-placeholder-count="4">
+                      <text x="{{ l.x }}" y="{{ l.nameY }}" style="{{ l.nameStyle }}">{{ l.name }}</text>
+                      <text x="{{ l.x }}" y="{{ l.pctY }}" style="{{ l.pctStyle }}">{{ l.pct }}</text>
+                    </sc-for>
+                  </svg>
+                  <sc-if value="{{ fund.chart.showCenter }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,0.94);border-radius:50%;width:110px;height:110px;box-shadow:0 4px 16px rgba(20,20,40,0.12);pointer-events:none">
+                      <span style="{{ fund.chart.centerPctStyle }}">{{ fund.chart.centerPct }}</span>
+                      <span style="{{ fund.chart.centerLabelStyle }}">{{ fund.chart.centerLabel }}</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ fund.chart.hoverInfo }}" hint-placeholder-val="{{ false }}">
+                    <div style="{{ fund.chart.hoverInfo.boxStyle }}">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="{{ fund.chart.hoverInfo.dotStyle }}"></span><span style="font-size:12.5px;font-weight:600;color:var(--ink)">{{ fund.chart.hoverInfo.label }}</span></div>
+                      <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:16px;font-weight:700;color:var(--ink)">{{ fund.chart.hoverInfo.amt }}</span><span style="font-size:12px;font-weight:600;color:var(--muted-2)">{{ fund.chart.hoverInfo.pct }}</span></div>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="flex:1 1 40%;min-width:260px;display:flex;flex-direction:column;gap:2px">
+                <sc-for list="{{ fund.chart.legend }}" as="lg" hint-placeholder-count="6">
+                  <div style="{{ lg.rowStyle }}" onMouseEnter="{{ lg.onEnter }}" onMouseLeave="{{ lg.onLeave }}">
+                    <span style="{{ lg.dot }}"></span>
+                    <span style="font-size:13.5px;color:var(--ink-2);font-weight:500;flex:1">{{ lg.label }}</span>
+                    <span style="font-size:14px;font-weight:600;color:var(--ink);text-align:right">{{ lg.amt }}</span>
+                    <span style="{{ lg.editWrap }}"><input class="alnum" type="number" min="0" max="100" step="1" value="{{ lg.pctNum }}" onInput="{{ lg.onInput }}" disabled="{{ lg.locked }}"><span style="font-size:12.5px;color:var(--muted-2);font-weight:500">%</span></span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <sc-if value="{{ fund.chart.showError }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:10px;margin:6px 0 4px;padding:11px 14px;background:var(--tint-red-2);border:1px solid var(--error-border);border-radius:12px">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--error)" stroke-width="2.2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span style="font-size:12.5px;color:var(--error-text);font-weight:500">{{ fund.chart.errorText }}</span>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <div style="margin-top:18px;border-top:1px solid var(--border-3);padding-top:14px">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+              <span style="width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--profit-2)"></span>
+              <h4 style="margin:0;font-size:13.5px;font-weight:600;color:var(--ink-2)">Reinvest in ETF · {{ fund.etf.bucket }}</h4>
+              <span style="display:flex;align-items:center;gap:8px;margin-left:auto">
+                <span style="{{ fund.etf.totalStyle }}">{{ fund.etf.totalLabel }}</span>
+                <button onClick="{{ fund.etf.onAdd }}" style="{{ fund.etf.addStyle }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add ETF</button>
+              </span>
+            </div>
+            <div style="display:flex;flex-direction:column;padding-left:18px">
+              <sc-for list="{{ fund.etf.rows }}" as="f" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border-4)">
+                  <span style="display:flex;align-items:center;gap:8px;min-width:0;flex:1"><span style="{{ f.dot }}"></span><input class="etftick" type="text" value="{{ f.ticker }}" onInput="{{ f.onTicker }}" disabled="{{ f.locked }}"><input class="etfname" style="flex:0 1 148px" type="text" value="{{ f.name }}" onInput="{{ f.onName }}" disabled="{{ f.locked }}" placeholder="Fund name"><span style="color:var(--grid-alt);flex-shrink:0">|</span><input class="etfnote" style="flex:1 1 auto" type="text" value="{{ f.note }}" onInput="{{ f.onNote }}" disabled="{{ f.locked }}" placeholder="Rationale"></span>
+                  <span style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+                    <span style="font-size:13.5px;font-weight:600;color:var(--ink);min-width:60px;text-align:right">{{ f.amt }}</span>
+                    <span style="{{ f.editWrap }}"><input class="alnum" type="number" min="0" max="100" step="1" value="{{ f.pctNum }}" onInput="{{ f.onPct }}" disabled="{{ f.locked }}"><span style="font-size:12.5px;color:var(--muted-2);font-weight:500">%</span></span>
+                    <button class="expdel" onClick="{{ f.onDelete }}" title="Remove ETF" style="{{ f.delStyle }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button>
+                  </span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="{{ fund.compBlock }};margin-top:18px;font-size:10.5px;color:var(--faint);text-align:center;letter-spacing:0.06em">Tax figures are estimates (1256 60/40 treatment assumed) · confirm with your accountant</div>
+      </div>
+
+      <div style="{{ dashStyle }}">
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:22px">
+        <div>
+          <h1 style="margin:0;font-size:31px;font-weight:700;letter-spacing:-0.01em">Trade Analysis</h1>
+          <p style="margin:6px 0 0;font-size:13.5px;color:var(--muted)">SPX · NDX index options · Interactive Brokers · {{ dateCtl.rangeLabel }}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center">
+            <div style="display:flex;gap:3px;background:var(--toggle);border:1px solid var(--border-2);border-radius:12px;padding:3px">
+              <sc-for list="{{ instrument.opts }}" as="o" hint-placeholder-count="3">
+                <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end">
+              <sc-for list="{{ dateCtl.presets }}" as="p" hint-placeholder-count="4">
+                <button onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--border-2);border-radius:14px;padding:8px 12px">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2.5"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="16" y1="2" x2="16" y2="6"></line></svg>
+            <select value="{{ dateCtl.startVal }}" onChange="{{ dateCtl.onStart }}" style="border:none;background:transparent;outline:none;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer">
+              <sc-for list="{{ dateCtl.startOpts }}" as="o" hint-placeholder-count="15">
+                <option value="{{ o.value }}" disabled="{{ o.disabled }}">{{ o.label }}</option>
+              </sc-for>
+            </select>
+            <span style="color:var(--faint);font-size:13px">→</span>
+            <select value="{{ dateCtl.endVal }}" onChange="{{ dateCtl.onEnd }}" style="border:none;background:transparent;outline:none;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer">
+              <sc-for list="{{ dateCtl.endOpts }}" as="o" hint-placeholder-count="15">
+                <option value="{{ o.value }}" disabled="{{ o.disabled }}">{{ o.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:18px;margin:0 0 22px">
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,50,80,0.04)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:14.5px;color:var(--muted)">Net P&amp;L</span>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--brand-tint);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2.5"></rect><path d="M16 12h.01"></path><path d="M2 10h20"></path></svg></div>
+          </div>
+          <div style="font-size:25px;font-weight:700;letter-spacing:-0.01em;margin-bottom:10px;color:var(--profit)">{{ kpi.net }}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="width:22px;height:22px;border-radius:50%;background:var(--profit-tint);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--profit-3)" stroke-width="3"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="8 7 17 7 17 16"></polyline></svg></span>
+              <span style="font-size:14px;font-weight:600;color:var(--profit-3)">{{ kpi.exp }}/trade</span>
+            </div>
+            <span style="font-size:13px;color:var(--muted-2)">{{ kpi.count }} trades</span>
+          </div>
+        </div>
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,50,80,0.04)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:14.5px;color:var(--muted)">Win rate</span>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--brand-tint);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><circle cx="12" cy="12" r="0.8" fill="var(--brand)"></circle></svg></div>
+          </div>
+          <div style="font-size:25px;font-weight:700;letter-spacing:-0.01em;margin-bottom:10px">{{ kpi.winRate }}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="width:22px;height:22px;border-radius:50%;background:var(--profit-tint);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--profit-3)" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              <span style="font-size:14px;font-weight:600;color:var(--profit-3)">{{ kpi.wins }}</span>
+            </div>
+            <span style="font-size:13px;color:var(--muted-2)">{{ kpi.losses }}</span>
+          </div>
+        </div>
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,50,80,0.04)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:14.5px;color:var(--muted)">Profit factor</span>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--brand-tint);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 7l-3 5h6z"></path><path d="M19 7l-3 5h6z"></path><path d="M5 7l7-2 7 2"></path></svg></div>
+          </div>
+          <div style="font-size:25px;font-weight:700;letter-spacing:-0.01em;margin-bottom:10px">{{ kpi.pf }}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="width:22px;height:22px;border-radius:50%;background:var(--profit-tint);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--profit-3)" stroke-width="3"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="8 7 17 7 17 16"></polyline></svg></span>
+              <span style="font-size:14px;font-weight:600;color:var(--profit-3)">healthy</span>
+            </div>
+            <span style="font-size:13px;color:var(--muted-2)">≥1.5 is good</span>
+          </div>
+        </div>
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,50,80,0.04)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:14.5px;color:var(--muted)">Avg R / trade</span>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--brand-tint);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="15 7 21 7 21 13"></polyline></svg></div>
+          </div>
+          <div style="font-size:25px;font-weight:700;letter-spacing:-0.01em;margin-bottom:10px">{{ kpi.avgR }}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="width:22px;height:22px;border-radius:50%;background:var(--profit-tint);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--profit-3)" stroke-width="3"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="8 7 17 7 17 16"></polyline></svg></span>
+              <span style="font-size:14px;font-weight:600;color:var(--profit-3)">positive edge</span>
+            </div>
+            <span style="font-size:13px;color:var(--muted-2)">{{ kpi.hold }} avg hold</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 style="margin:0 0 14px;font-size:19px;font-weight:600">Recent Trades</h2>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+        <sc-for list="{{ recent }}" as="r" hint-placeholder-count="5">
+          <div class="reprow" style="display:grid;grid-template-columns:1.5fr 0.9fr 1fr 1.5fr 36px;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 22px;box-shadow:0 4px 14px rgba(40,50,80,0.04);transition:box-shadow 0.15s">
+            <div style="display:flex;align-items:center;gap:15px">
+              <div style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12.5px;color:var(--card);{{ r.badge }}">{{ r.under }}</div>
+              <div>
+                <div style="font-weight:600;font-size:15px;color:var(--ink-2)">{{ r.contract }}</div>
+                <div style="font-size:12.5px;color:var(--muted-2)">{{ r.meta }}</div>
+              </div>
+            </div>
+            <span style="font-weight:700;font-size:17px;{{ r.pnlColor }}">{{ r.pnl }}</span>
+            <span style="font-size:14px;color:var(--muted)">{{ r.setup }}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="{{ r.exitDot }}"></span>
+              <div>
+                <div style="font-size:13.5px;font-weight:500;{{ r.exitColor }}">{{ r.exitReason }}</div>
+                <div style="font-size:11.5px;color:var(--faint)">{{ r.exitSub }}</div>
+              </div>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--brand)" style="justify-self:end;cursor:pointer"><circle cx="12" cy="5" r="1.7"></circle><circle cx="12" cy="12" r="1.7"></circle><circle cx="12" cy="19" r="1.7"></circle></svg>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:18px;margin:-12px 0 24px;font-size:12px;color:var(--muted-2)">
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--profit-2)"></span>Win — % of credit captured</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--danger)"></span>Loss — why you exited</span>
+      </div>
+
+      <div style="display:flex;gap:24px;margin-bottom:24px">
+        <div style="flex:1.7;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:26px 28px;box-shadow:0 6px 18px rgba(40,50,80,0.04)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap">
+            <div>
+              <div style="display:flex;align-items:center;gap:9px">
+                <h3 style="margin:0;font-size:18px;font-weight:600">Where you sold — price &amp; 50 EMA</h3>
+                <span style="font-size:11px;font-weight:600;color:var(--brand);background:var(--brand-tint);padding:3px 9px;border-radius:20px;letter-spacing:0.03em">SPX only</span>
+              </div>
+              <div style="font-size:13px;color:var(--muted-2);margin-top:3px">Intraday candles · price axis &amp; time of day · hover a marker for detail</div>
+            </div>
+            <div style="display:flex;gap:3px;background:var(--toggle);border:1px solid var(--border-2);border-radius:11px;padding:3px">
+              <sc-for list="{{ tfTabs }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ hasSessions }}" hint-placeholder-val="{{ true }}">
+            <dc-import name="CandleChart" sessions="{{ sessions }}" hint-size="100%,400px"></dc-import>
+          </sc-if>
+          <sc-if value="{{ noSessions }}" hint-placeholder-val="{{ false }}">
+            <div style="height:340px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted-2);font-size:14px;background:var(--panel);border:1px dashed var(--border-2);border-radius:16px">No SPX option trades in this range. Switch the instrument filter to All or Index options, or widen the dates.</div>
+          </sc-if>
+        </div>
+
+        <div style="flex:1;border-radius:22px;padding:28px 30px;background:linear-gradient(150deg,var(--brand-2) 0%,var(--brand) 100%);color:var(--card);position:relative;overflow:hidden;box-shadow:0 18px 40px rgba(0,90,120,0.30);display:flex;flex-direction:column">
+          <div style="font-size:16px;font-weight:500;opacity:0.92;margin-bottom:10px">Your edge this month</div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:46px;font-weight:700;line-height:1">{{ kpi.winRate }}</div>
+              <div style="font-size:15px;opacity:0.9;margin-top:4px">Win rate</div>
+            </div>
+            <div style="position:relative;width:64px;height:64px">
+              <svg width="64" height="64" viewBox="0 0 64 64" style="transform:rotate(-90deg)"><circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="5"></circle><circle cx="32" cy="32" r="27" fill="none" stroke="var(--peach)" stroke-width="5" stroke-linecap="round" stroke-dasharray="{{ edge.ringDash }}"></circle></svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--card)" stroke-width="2"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="15 7 21 7 21 13"></polyline></svg></div>
+            </div>
+          </div>
+
+          <div style="height:1px;background:rgba(255,255,255,0.18);margin:22px 0 18px"></div>
+
+          <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:16px">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--peach);margin-top:6px;flex-shrink:0"></span>
+            <div>
+              <div style="font-size:12px;opacity:0.78;text-transform:uppercase;letter-spacing:0.04em">Best setup</div>
+              <div style="font-size:14.5px;font-weight:500;margin-top:2px">{{ edge.bestSetup }}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:auto">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--danger-soft);margin-top:6px;flex-shrink:0"></span>
+            <div>
+              <div style="font-size:12px;opacity:0.78;text-transform:uppercase;letter-spacing:0.04em">Watch out</div>
+              <div style="font-size:14.5px;font-weight:500;margin-top:2px">{{ edge.watch }}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:24px">
+            <div>
+              <div style="font-size:14px;opacity:0.85;margin-bottom:2px">Net P&amp;L</div>
+              <div style="font-size:30px;font-weight:700">{{ kpi.net }}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:14px;opacity:0.85;margin-bottom:2px">PF</div>
+              <div style="font-size:22px;font-weight:600">{{ kpi.pf }}</div>
+            </div>
+          </div>
+          <svg viewBox="0 0 240 70" style="position:absolute;right:0;bottom:96px;width:200px;height:60px;opacity:0.7"><defs><linearGradient id="wv2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--danger)"></stop><stop offset="1" stop-color="var(--peach)"></stop></linearGradient></defs><path d="M0,50 C40,22 70,60 110,36 C150,14 180,32 240,4" fill="none" stroke="url(#wv2)" stroke-width="4" stroke-linecap="round"></path></svg>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:24px">
+        <div style="flex:1.25;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:24px 26px;box-shadow:0 6px 18px rgba(40,50,80,0.04)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <h3 style="margin:0;font-size:17px;font-weight:600">Equity curve</h3>
+            <span style="display:flex;align-items:center;gap:8px;color:var(--brand);font-weight:500;font-size:13.5px"><span style="width:11px;height:11px;border-radius:50%;background:var(--brand)"></span>Cumulative P&amp;L</span>
+          </div>
+          <div style="width:100%;position:relative">
+            <svg viewBox="0 0 900 302" style="width:100%;height:auto;display:block">
+              <sc-for list="{{ equity.yticks }}" as="g" hint-placeholder-count="4">
+                <line x1="86" y1="{{ g.y }}" x2="880" y2="{{ g.y }}" stroke="var(--border-3)" stroke-width="1"></line>
+              </sc-for>
+              <line x1="86" y1="24" x2="86" y2="270" stroke="var(--axis)" stroke-width="1.5"></line>
+              <line x1="86" y1="270" x2="884" y2="270" stroke="var(--axis)" stroke-width="1.5"></line>
+              <path d="{{ equity.area }}" fill="rgba(0,129,167,0.08)"></path>
+              <path d="{{ equity.line }}" fill="none" stroke="var(--brand)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="{{ equity.endX }}" cy="{{ equity.endY }}" r="6" fill="var(--brand)" stroke="var(--card)" stroke-width="2.5"></circle>
+            </svg>
+            <sc-for list="{{ equity.yticks }}" as="g" hint-placeholder-count="4">
+              <div style="{{ g.lblStyle }}">{{ g.label }}</div>
+            </sc-for>
+            <sc-for list="{{ equity.xlabels }}" as="x" hint-placeholder-count="6">
+              <div style="{{ x.lblStyle }}">{{ x.label }}</div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:24px 26px;box-shadow:0 6px 18px rgba(40,50,80,0.04)">
+          <h3 style="margin:0 0 3px;font-size:17px;font-weight:600">Entry quality vs candle</h3>
+          <div style="font-size:12.5px;color:var(--muted-2);margin-bottom:18px">Win rate by where you sold</div>
+          <div style="display:flex;flex-direction:column;gap:15px">
+            <sc-for list="{{ entryQ }}" as="e" hint-placeholder-count="4">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:13.5px;font-weight:500;color:var(--ink-2)">{{ e.label }}</span><span style="font-size:13px;font-weight:600;{{ e.rateColor }}">{{ e.rate }}</span></div>
+                <div style="height:8px;background:var(--border-3);border-radius:5px;overflow:hidden"><div style="{{ e.barStyle }}"></div></div>
+                <div style="font-size:11.5px;color:var(--muted-2)">{{ e.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:24px 26px;box-shadow:0 6px 18px rgba(40,50,80,0.04)">
+          <h3 style="margin:0 0 3px;font-size:17px;font-weight:600">Recurring mistakes</h3>
+          <div style="font-size:12.5px;color:var(--muted-2);margin-bottom:18px">What flagged trades cost</div>
+          <div style="display:flex;flex-direction:column;gap:15px">
+            <sc-for list="{{ mistakes }}" as="m" hint-placeholder-count="4">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:13.5px;font-weight:500;color:var(--ink-2)">{{ m.label }}</span><span style="font-size:13px;font-weight:600;color:var(--danger)">{{ m.pnl }}</span></div>
+                <div style="height:8px;background:var(--border-3);border-radius:5px;overflow:hidden"><div style="{{ m.barStyle }}"></div></div>
+                <div style="font-size:11.5px;color:var(--muted-2)">{{ m.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860},&quot;cushionPct&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:23,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:0,&quot;max&quot;:60,&quot;step&quot;:1,&quot;unit&quot;:&quot;%&quot;,&quot;section&quot;:&quot;Fund allocation defaults&quot;},&quot;etfPct&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:25,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:0,&quot;max&quot;:60,&quot;step&quot;:1,&quot;unit&quot;:&quot;%&quot;,&quot;section&quot;:&quot;Fund allocation defaults&quot;}}">
+class Component extends DCLogic {
+  state = { active: 'dashboard', startIdx: 0, endIdx: 14, rangePreset: 'Last 1 Year', instrument: 'all', tf: '30', fundMonth: 'Jul 2026', vix: 14.5, gap: 0.3, bias: 'neutral', event: 'none', allocPct: null, etfs: null, expenses: null, taxRates: null, ...this.loadSaved() };
+
+  TODAY() { return new Date(2026, 6, 5); } // Jul 5, 2026
+
+  componentDidMount() { this._chartTimer = setTimeout(() => this.setState({ chartOn: true }), 80); }
+  componentWillUnmount() { clearTimeout(this._chartTimer); }
+  // re-trigger the expand animation when the viewed month changes
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState && prevState.fundMonth !== this.state.fundMonth) {
+      this.setState({ chartOn: false });
+      clearTimeout(this._chartTimer);
+      this._chartTimer = setTimeout(() => this.setState({ chartOn: true }), 60);
+    }
+  }
+
+  // month labels ('Jul 2026', ...) counting back from the current month, newest first
+  monthsBack(n) {
+    const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const t = this.TODAY(); let y = t.getFullYear(), m = t.getMonth();
+    const out = [];
+    for (let i = 0; i < n; i++) { out.push(names[m] + ' ' + y); m--; if (m < 0) { m = 11; y--; } }
+    return out;
+  }
+
+  julyMTD() { const achieved = 1780, elapsed = 2, total = 22, target = 18000; return { achieved, elapsed, total, target, projected: Math.round(achieved / elapsed * total) }; }
+
+  grossFor(m) {
+    if (m === 'Jul 2026') return this.julyMTD().projected;
+    if (m === 'Jun 2026') return this.allTrades().reduce((a, t) => a + t.pnl, 0);
+    const fixed = { 'Feb 2026': -3000, 'Mar 2026': 500, 'Apr 2026': 1500, 'May 2026': 3000 };
+    if (fixed[m] != null) return fixed[m];
+    // deterministic plausible gross for any other picked month ($9k–$20k)
+    let h = 0; for (let i = 0; i < m.length; i++) h = (h * 31 + m.charCodeAt(i)) >>> 0;
+    return 9000 + (h % 11000);
+  }
+
+  // net a single closed month: gross + carried-in loss, tax only on positive profit, expenses always apply
+  monthNet(m, carryIn) {
+    const P = this.grossFor(m);
+    const effective = P + carryIn;               // prior loss must be covered first
+    const taxable = Math.max(0, effective);      // no tax owed on a loss
+    const tax = this.getTaxEntries().reduce((a, t) => {
+      const base = t.basis === 60 ? 0.60 * taxable : t.basis === 40 ? 0.40 * taxable : taxable;
+      return a + base * (t.rate / 100);
+    }, 0);
+    const expenseTotal = this.getExpenses().reduce((a, e) => a + (Number(e.amt) || 0), 0);
+    const Y = effective - tax - expenseTotal;    // remaining after tax + fixed expenses
+    return { P, effective, tax, expenseTotal, Y, carryOut: Y < 0 ? Y : 0 };
+  }
+
+  // accumulated loss (<= 0) rolling into the given month from all prior closed months
+  carryInFor(m) {
+    const seq = this.monthsBack(24).slice().reverse();   // oldest -> newest
+    const idx = seq.indexOf(m);
+    if (idx <= 0) return 0;
+    const curMonth = this.monthsBack(1)[0];
+    let carry = 0;
+    for (let i = 0; i < idx; i++) {
+      if (seq[i] === curMonth) continue;                 // current month not closed yet
+      carry = this.monthNet(seq[i], carry).carryOut;
+    }
+    return carry;
+  }
+
+  // estimated-tax quarters: payment month -> the months it covers (US 1040-ES schedule)
+  quarterFor(m) {
+    const parts = m.split(' '); const mo = parts[0]; const yr = parseInt(parts[1], 10);
+    const map = {
+      Apr: { q: 'Q1', cover: [['Jan', yr], ['Feb', yr], ['Mar', yr]] },
+      Jun: { q: 'Q2', cover: [['Apr', yr], ['May', yr]] },
+      Sep: { q: 'Q3', cover: [['Jun', yr], ['Jul', yr], ['Aug', yr]] },
+      Jan: { q: 'Q4', cover: [['Sep', yr - 1], ['Oct', yr - 1], ['Nov', yr - 1], ['Dec', yr - 1]] }
+    };
+    const hit = map[mo];
+    if (!hit) return null;
+    const months = hit.cover.map(([name, y]) => {
+      const label = `${name} ${y}`;
+      const carryIn = this.carryInFor(label);
+      return { label, tax: this.monthNet(label, carryIn).tax };
+    });
+    return { quarter: hit.q, months, total: months.reduce((a, x) => a + x.tax, 0) };
+  }
+
+  catList() {
+    return [
+      { key: 'cushion',  label: 'Margin cushion (next month)', c: '#0081a7' },
+      { key: 'mortgage', label: 'Home mortgage',               c: '#f07167' },
+      { key: 'etf',      label: 'Reinvest in ETF',             c: '#1c8c5a' },
+      { key: 'stocks',   label: 'Stock investment',            c: '#2a6fdb' },
+      { key: 'charity',  label: 'Charity',                     c: '#e9c46a' },
+      { key: 'god',      label: 'God',                         c: '#9b5de5' },
+      { key: 'vivaan',   label: 'Vivaan',                      c: '#fed9b7' },
+      { key: 'parents',  label: 'Parents',                     c: '#a855f7' },
+      { key: 'party',    label: 'Party fund',                  c: '#00afb9' },
+      { key: 'misc',     label: 'Miscellaneous',               c: '#9a9ab0' }
+    ];
+  }
+  defaultAllocObj() {
+    const cushion = Math.round(this.props.cushionPct ?? 23);
+    const etf = Math.round(this.props.etfPct ?? 25);
+    const stocks = 5, mortgage = 25, vivaan = 8, parents = 7, party = 5, charity = 1, god = 1;
+    const misc = Math.max(0, 100 - cushion - etf - stocks - mortgage - vivaan - parents - party - charity - god);
+    return { cushion, mortgage, etf, stocks, charity, god, vivaan, parents, party, misc };
+  }
+
+  // current month is always editable; a just-ended month is editable only within the first 7 days of the new month
+  allocEditable(month) {
+    if (month === 'Jul 2026') return true;
+    if (month === 'Jun 2026' && this.TODAY().getDate() <= 7) return true;
+    return false;
+  }
+  setAlloc(month, key, val) {
+    this.setState(s => {
+      const all = { ...(s.allocPct || {}) };
+      const cur = { ...(all[month] || this.defaultAllocObj()) };
+      cur[key] = Math.max(0, Math.min(100, val));
+      all[month] = cur;
+      return { allocPct: all };
+    }, () => this.markDirty());
+  }
+
+  // editable ETF list for the "Reinvest in ETF" bucket (add / delete / edit)
+  defaultEtfs() {
+    return [
+      { id: 'vti',  ticker: 'VTI',  name: 'US total market',   note: 'Core compounder', pct: 60, c: '#0081a7' },
+      { id: 'vxus', ticker: 'VXUS', name: 'Intl total market', note: 'Diversification + foreign tax credit works best in taxable', pct: 25, c: '#00afb9' },
+      { id: 'vteb', ticker: 'VTEB', name: 'CA muni fund',      note: 'Tax-exempt yield', pct: 15, c: '#1c8c5a' }
+    ];
+  }
+  getEtfs() { return this.state.etfs || this.defaultEtfs(); }
+  setEtfField(id, field, val) {
+    this.setState(s => ({ etfs: (s.etfs || this.defaultEtfs()).map(e => e.id === id ? { ...e, [field]: field === 'pct' ? Math.max(0, Math.min(100, val || 0)) : val } : e) }), () => this.markDirty());
+  }
+  addEtf() {
+    const palette = ['#0081a7', '#00afb9', '#1c8c5a', '#f07167', '#a855f7', '#c97f1a', '#fed9b7'];
+    this.setState(s => {
+      const list = [ ...(s.etfs || this.defaultEtfs()) ];
+      list.push({ id: 'etf' + Date.now(), ticker: 'NEW', name: 'New fund', note: '', pct: 0, c: palette[list.length % palette.length] });
+      return { etfs: list };
+    }, () => this.markDirty());
+  }
+  delEtf(id) {
+    this.setState(s => ({ etfs: (s.etfs || this.defaultEtfs()).filter(e => e.id !== id) }), () => this.markDirty());
+  }
+
+  // configurable tax entries (add / remove / edit) — basis: 60|40|100 (% of profit the rate applies to)
+  defaultTaxEntries() { return [
+    { id: 'fedLong', name: 'Federal \u2014 long-term', basis: 60, rate: 15 },
+    { id: 'fedShort', name: 'Federal \u2014 short-term', basis: 40, rate: 35 },
+    { id: 'state', name: 'State \u2014 on total profit', basis: 100, rate: 10.3 }
+  ]; }
+  getTaxEntries() { return this.state.taxEntries || this.defaultTaxEntries(); }
+  setTaxEntry(id, field, val) {
+    this.setState(s => {
+      const list = (s.taxEntries || this.defaultTaxEntries()).map(t => t.id === id
+        ? { ...t, [field]: (field === 'rate' ? Math.max(0, Math.min(100, val || 0)) : (field === 'basis' ? (parseInt(val, 10) || 100) : val)) }
+        : t);
+      return { taxEntries: list };
+    }, () => this.markDirty());
+  }
+  addTaxEntry() {
+    this.setState(s => ({ taxEntries: [ ...(s.taxEntries || this.defaultTaxEntries()), { id: 'tax' + Date.now(), name: 'New tax', basis: 100, rate: 0 } ] }), () => this.markDirty());
+  }
+  delTaxEntry(id) {
+    this.setState(s => ({ taxEntries: (s.taxEntries || this.defaultTaxEntries()).filter(t => t.id !== id) }), () => this.markDirty());
+  }
+
+  // persist fund-management edits across reloads (no lifecycle hooks — called from setters)
+  loadSaved() {
+    try { const raw = localStorage.getItem('tradeDash.fund.v2'); return raw ? (JSON.parse(raw) || {}) : {}; } catch (e) { return {}; }
+  }
+  persist() {
+    try { localStorage.setItem('tradeDash.fund.v2', JSON.stringify({ allocPct: this.state.allocPct, etfs: this.state.etfs, expenses: this.state.expenses, taxEntries: this.state.taxEntries })); } catch (e) {}
+  }
+  // edits stay in working state until the user clicks Update, which persists them
+  markDirty() { if (!this.state.fundDirty) this.setState({ fundDirty: true, fundSaved: false }); }
+  commitUpdates() {
+    this.persist();
+    clearTimeout(this._savedTimer);
+    this.setState({ fundDirty: false, fundSaved: true });
+    this._savedTimer = setTimeout(() => this.setState({ fundSaved: false }), 2200);
+  }
+  discardUpdates() {
+    const saved = this.loadSaved();
+    this.setState({
+      allocPct: saved.allocPct || undefined,
+      etfs: saved.etfs || undefined,
+      expenses: saved.expenses || undefined,
+      taxEntries: saved.taxEntries || undefined,
+      fundDirty: false,
+      fundSaved: false
+    });
+  }
+
+  // editable fixed expenses (recurring — shared across months)
+  defaultExpenses() { return [ { id: 'claude', name: 'Claude expense', amt: 100 }, { id: 'chatgpt', name: 'ChatGPT', amt: 20 }, { id: 'seeking', name: 'Seeking Alpha', amt: 42 }, { id: 'car', name: 'Car expense', amt: 400 } ]; }
+  getExpenses() { return this.state.expenses || this.defaultExpenses(); }
+  setExpense(id, field, val) {
+    this.setState(s => {
+      const list = (s.expenses || this.defaultExpenses()).map(e => e.id === id ? { ...e, [field]: field === 'amt' ? Math.max(0, val || 0) : val } : e);
+      return { expenses: list };
+    }, () => this.markDirty());
+  }
+  addExpense() {
+    this.setState(s => {
+      const list = [ ...(s.expenses || this.defaultExpenses()), { id: 'exp' + Date.now(), name: 'New expense', amt: 0 } ];
+      return { expenses: list };
+    }, () => this.markDirty());
+  }
+  delExpense(id) {
+    this.setState(s => ({ expenses: (s.expenses || this.defaultExpenses()).filter(e => e.id !== id) }), () => this.markDirty());
+  }
+
+  decide() {
+    const { vix, gap, bias, event } = this.state;
+    const trace = [];
+    const absGap = Math.abs(gap);
+    if (event === 'fomc') {
+      trace.push({ pass: false, text: 'FOMC day — IV will spike into announcement, then crush. Condors get hurt on IV expansion before the event.' });
+      trace.push({ pass: true, text: 'Calendar spread captures IV crush post-announcement. Enter ~1hr before FOMC (10am PDT), exit 30min after.' });
+      return { strategy: 'Calendar spread', color: 'cal', why: 'FOMC IV crush play. Sell 0DTE straddle, buy 1DTE straddle at same strike. Collect $80\u2013150 on the IV differential. FOMC announces 11am PDT \u2014 enter ~10am, exit by 11:30am PDT.', credit: '$80\u2013150', maxLoss: '$200\u2013300', window: '10am\u201311:30am PDT', winRate: '72%', trace };
+    }
+    if (event === 'cpi' || event === 'jobs') {
+      const E = event.toUpperCase();
+      trace.push({ pass: false, text: `${E} print today — binary directional risk. Condor wings can get blown through on a hot/cold print.` });
+      if (vix > 18) {
+        trace.push({ pass: false, text: 'VIX elevated + macro event = skip day. Risk/reward doesn\u2019t justify credit collected.' });
+        return { strategy: 'Sit out', color: 'skip', why: `${E} print with VIX above 18 is a skip. Gap risk after the number means both wings of a condor are vulnerable. Protect capital.`, credit: '$0', maxLoss: '$0', window: 'N/A', winRate: 'N/A', trace };
+      }
+      trace.push({ pass: true, text: 'VIX manageable — run a single spread on the safe side only, after the number drops.' });
+      if (bias === 'bullish') return { strategy: 'Bull put spread (post-print)', color: 'put', why: `Wait for the ${E} print. If market holds or rallies, sell an OTM put spread. One side only, wider than usual. Don\u2019t touch the call side.`, credit: '$60\u201390', maxLoss: '$410\u2013440', window: 'Post-print, by 7am PDT', winRate: '80%', trace };
+      return { strategy: 'Bear call spread (post-print)', color: 'call', why: `Wait for the ${E} print. If market fades, sell OTM call spread. One side only. No put spread — downside gap risk is real.`, credit: '$55\u201380', maxLoss: '$420\u2013445', window: 'Post-print, by 7am PDT', winRate: '78%', trace };
+    }
+    if (event === 'opex') {
+      trace.push({ pass: true, text: 'OPEX / triple witch — max-pain pinning effect is strong. Market tends to pin near high-OI strikes into close.' });
+      return { strategy: 'Iron butterfly', color: 'fly', why: 'OPEX creates gravitational pull toward max pain (high open-interest strike). Sell ATM iron butterfly. Collect 3\u20134x normal premium. Tight stop \u2014 exit if SPX moves 15+ pts from your short strike.', credit: '$300\u2013450', maxLoss: '$550\u2013700', window: 'Enter 7\u20138am PDT, hold to 12:30pm PDT', winRate: '68%', trace };
+    }
+    trace.push({ pass: vix < 13, text: `VIX ${vix} — ${vix < 13 ? 'very low, premium compressed' : vix < 16 ? 'normal range, good condor territory' : vix < 20 ? 'elevated, wider natural range' : 'high, large moves expected'}` });
+    if (vix > 25) {
+      trace.push({ pass: false, text: 'VIX above 25 — market in stress. Undefined or short spreads get hurt fast. Skip or go very wide.' });
+      if (bias === 'bullish') {
+        trace.push({ pass: true, text: 'Bullish bias in high VIX = oversold-bounce candidate. Wide OTM put spread collects elevated premium.' });
+        return { strategy: 'Wide bull put spread', color: 'put', why: 'VIX above 25 means put premium is extremely elevated. Sell a wide OTM put spread to collect outsized credit on the downside. Skip the call side \u2014 too much gap risk. Be patient on entry.', credit: '$120\u2013200', maxLoss: '$800\u20131200', window: 'Enter after 7am PDT, hold 1\u20133hrs', winRate: '74%', trace };
+      }
+      return { strategy: 'Sit out', color: 'skip', why: 'VIX above 25 with no clear bullish bias is a skip. Condors and butterflies both bleed in trending high-vol environments. Cash is a position.', credit: '$0', maxLoss: '$0', window: 'N/A', winRate: 'N/A', trace };
+    }
+    trace.push({ pass: absGap <= 0.5, text: `Overnight gap ${gap > 0 ? '+' : ''}${gap}% — ${absGap < 0.3 ? 'flat open, normal' : absGap < 0.6 ? 'small gap, manageable' : absGap < 1.0 ? 'moderate gap, wait for fill' : 'large gap, high risk of continuation or reversal'}` });
+    if (absGap >= 1.0) {
+      trace.push({ pass: false, text: 'Gap \u2265 1% — wait for gap to fill or confirm direction before entering. First 30min is noise.' });
+      const side = gap > 0 ? 'Bear call spread' : 'Bull put spread';
+      const color = gap > 0 ? 'call' : 'put';
+      const why = gap > 0 ? 'Large gap up. Wait 30min to confirm hold or fade. If it fades, sell call spread. If it holds, consider a narrow condor after 7:30am PDT.' : 'Large gap down. Wait 30min — gap-down days often reverse. If reversal confirms, sell put spread OTM. Don\u2019t fight the tape.';
+      trace.push({ pass: true, text: `Single-sided spread after confirmation — ${side}` });
+      return { strategy: side, color, why, credit: '$60\u201390', maxLoss: '$410\u2013440', window: 'Enter after 7:00\u20137:30am PDT', winRate: '76%', trace };
+    }
+    if (bias === 'bullish') {
+      trace.push({ pass: true, text: 'Bullish bias — upside risk reduced, put side has more cushion. Jade Lizard is ideal: zero upside risk.' });
+      if (vix < 14) trace.push({ pass: true, text: 'Low VIX + bullish = premium compressed on calls. Jade Lizard collects more than a condor here.' });
+      return { strategy: 'Jade Lizard', color: 'lizard', why: 'Bullish bias means your call side is low-risk. Structure a Jade Lizard: sell OTM put + sell OTM call spread where total credit > call spread width. Result: zero max loss on the upside. Only risk is a sharp downside move through your naked put.', credit: '$130\u2013180', maxLoss: 'Put side only (one-sided)', window: 'Enter 7\u20138am PDT', winRate: '83%', trace };
+    }
+    if (bias === 'bearish') {
+      trace.push({ pass: true, text: 'Bearish bias — downside risk elevated, call side has more cushion. Bear call spread is cleanest.' });
+      return { strategy: 'Bear call spread', color: 'call', why: 'Bearish morning bias means upside is capped. Sell an OTM call spread to collect premium with the trend behind you. Skip the put spread. If market sells off hard, your spread expires worthless.', credit: '$60\u201390', maxLoss: '$410\u2013440', window: 'Enter 7\u20138am PDT, after open settles', winRate: '82%', trace };
+    }
+    if (bias === 'choppy') {
+      trace.push({ pass: false, text: 'Choppy / unclear — directionless markets whipsaw spreads. Condor wings get tested on both sides.' });
+      if (vix > 16) {
+        trace.push({ pass: false, text: 'Choppy + elevated VIX = skip. Two-sided risk without directional edge.' });
+        return { strategy: 'Sit out', color: 'skip', why: 'Choppy market with elevated VIX is the worst environment for credit spreads. Both sides of a condor get pressure. Wait for clearer conditions \u2014 there\u2019s no edge today.', credit: '$0', maxLoss: '$0', window: 'N/A', winRate: 'N/A', trace };
+      }
+      trace.push({ pass: true, text: 'Choppy but VIX contained — wide iron condor with extra cushion. Go wider than usual on strikes.' });
+      return { strategy: 'Wide iron condor', color: 'iron', why: 'Choppy but low vol. Go wider than usual on strikes \u2014 25\u201330 delta of cushion each side instead of 15\u201320. Collect slightly less but win rate rises. Staggered entry: 1 condor at 7am, 1 at 8:30am PDT.', credit: '$70\u201390', maxLoss: '$410\u2013430', window: 'Stagger: 7am + 8:30am PDT', winRate: '81%', trace };
+    }
+    trace.push({ pass: true, text: 'Neutral bias — ideal for two-sided credit strategies.' });
+    if (vix < 13) {
+      trace.push({ pass: true, text: 'VIX below 13 — premium compressed. Iron butterfly collects 3\u20134x more than a condor.' });
+      return { strategy: 'Iron butterfly', color: 'fly', why: 'Low VIX compresses condor premium to almost nothing. Shift to an iron butterfly \u2014 sell ATM straddle, buy OTM wings. Collect $280\u2013400 vs $80\u2013100 on a condor. Profit zone is narrower but SPX in a low-vol regime tends to pin. Exit at 50% profit.', credit: '$280\u2013400', maxLoss: '$600\u2013720', window: 'Enter 7\u20138am PDT, exit at 50% profit', winRate: '65%', trace };
+    }
+    if (vix >= 13 && vix < 18) {
+      trace.push({ pass: true, text: `VIX ${vix} — core iron condor territory. Standard setup applies.` });
+      const tighter = absGap < 0.2;
+      return { strategy: 'Iron condor', color: 'iron', why: `Textbook conditions. VIX in normal range, neutral bias, ${absGap < 0.2 ? 'flat open' : 'manageable gap'}. Run your standard setup. ${tighter ? 'Flat open means you can be slightly tighter on strikes for more premium.' : 'Gap present \u2014 give yourself an extra 5\u201310 pts cushion on the gap side.'} Stagger entry: 1 at 7am, 1 at 8am, 1 after 10am PDT.`, credit: '$90\u2013120', maxLoss: '$380\u2013410', window: 'Stagger: 7am, 8am, 10am PDT', winRate: '85%', trace };
+    }
+    trace.push({ pass: false, text: `VIX ${vix} — elevated. Natural range is wide, condor wings can get tested on intraday moves.` });
+    trace.push({ pass: true, text: 'Go wider on strikes, fewer contracts. Reduce size 30\u201340%, collect similar premium per unit.' });
+    return { strategy: 'Iron condor (reduced size)', color: 'iron', why: `VIX elevated at ${vix}. SPX can move 30\u201350 pts intraday. Go 2\u20133x wider on strikes, reduce contracts by 30%. Similar premium per condor but strikes much further OTM. Hard stop at 2x premium (not 5x) \u2014 elevated VIX means faster moves.`, credit: '$100\u2013140', maxLoss: '$360\u2013400', window: 'Enter after 7:30am PDT', winRate: '78%', trace };
+  }
+
+  setupFor(strategy) {
+    const map = {
+      'Iron condor': [{ k: 'Put spread', v: 'Sell 15\u201316\u0394 put, buy 5pts lower' }, { k: 'Call spread', v: 'Sell 15\u201316\u0394 call, buy 5pts higher' }, { k: 'Target credit', v: '$30\u201340/side ($100 total)' }, { k: 'Stop loss', v: 'Close if spread doubles ($200 debit)' }, { k: 'Profit target', v: 'Close at 50% profit ($50)' }, { k: 'Contracts', v: '3 condors = $300 target' }],
+      'Iron condor (reduced size)': [{ k: 'Put spread', v: 'Sell 10\u0394 put, buy 10pts lower' }, { k: 'Call spread', v: 'Sell 10\u0394 call, buy 10pts higher' }, { k: 'Target credit', v: '$40\u201350/side, wider strikes' }, { k: 'Stop loss', v: 'Close at 2x premium (vol moves fast)' }, { k: 'Contracts', v: '2\u20133, reduced from normal' }],
+      'Wide iron condor': [{ k: 'Put spread', v: 'Sell 10\u0394 put, buy 5pts lower' }, { k: 'Call spread', v: 'Sell 10\u0394 call, buy 5pts higher' }, { k: 'Entry', v: '1 condor at 7am, 1 at 8:30am PDT' }, { k: 'Stop loss', v: '3x premium ($210\u2013270)' }, { k: 'Profit target', v: '50% of credit' }],
+      'Iron butterfly': [{ k: 'Short straddle', v: 'Sell ATM call + ATM put (same strike)' }, { k: 'Wings', v: 'Buy call 30\u201340pts above, put 30\u201340pts below' }, { k: 'Target credit', v: '$300\u2013450 net' }, { k: 'Stop loss', v: 'Exit if SPX moves 15pts from short strike' }, { k: 'Profit target', v: '50% of credit ($150\u2013225)' }, { k: 'Contracts', v: '1\u20132 butterflies' }],
+      'Jade Lizard': [{ k: 'Put side', v: 'Sell 15\u201320\u0394 OTM put (cash-secured)' }, { k: 'Call side', v: 'Sell OTM call spread ($5 wide)' }, { k: 'Credit rule', v: 'Total credit must exceed call width ($5+)' }, { k: 'Upside risk', v: '$0 \u2014 zero loss if SPX rallies' }, { k: 'Downside risk', v: 'Put strike \u00d7 100/contract if SPX crashes' }, { k: 'Stop loss', v: 'Put side: close at 3x premium' }],
+      'Bull put spread': [{ k: 'Short put', v: 'Sell 15\u201320\u0394 OTM put' }, { k: 'Long put', v: 'Buy put 5pts lower' }, { k: 'Target credit', v: '$60\u201390 per spread' }, { k: 'Stop loss', v: 'Close at 3x credit ($180\u2013270)' }, { k: 'Profit target', v: 'Hold to expiry or 75% of credit' }, { k: 'Contracts', v: '4\u20135 spreads' }],
+      'Bull put spread (post-print)': [{ k: 'Entry', v: 'Wait 20\u201330min after print' }, { k: 'Short put', v: 'Sell 10\u201315\u0394 OTM put, wider' }, { k: 'Long put', v: 'Buy put 5pts lower' }, { k: 'Stop loss', v: 'Close at 2x credit \u2014 event moves faster' }, { k: 'Skip', v: 'Skip if print causes >1% move' }],
+      'Bear call spread': [{ k: 'Short call', v: 'Sell 15\u201320\u0394 OTM call' }, { k: 'Long call', v: 'Buy call 5pts higher' }, { k: 'Target credit', v: '$60\u201390 per spread' }, { k: 'Stop loss', v: 'Close at 3x credit' }, { k: 'Contracts', v: '4\u20135 spreads' }],
+      'Bear call spread (post-print)': [{ k: 'Entry', v: 'Wait 20\u201330min after print' }, { k: 'Short call', v: 'Sell 10\u201315\u0394 OTM call, wider' }, { k: 'Long call', v: 'Buy call 5pts higher' }, { k: 'Stop loss', v: 'Close at 2x credit' }, { k: 'Skip', v: 'If print gaps >1% up, skip entirely' }],
+      'Calendar spread': [{ k: 'Short leg', v: 'Sell 0DTE ATM straddle' }, { k: 'Long leg', v: 'Buy 1DTE ATM straddle, same strikes' }, { k: 'Entry timing', v: '~10am PDT (60min before announcement)' }, { k: 'Exit timing', v: '11:20\u201311:30am PDT' }, { k: 'Target', v: 'IV crush pays $80\u2013150 net' }, { k: 'Risk', v: 'Large move before announcement hurts long leg' }],
+      'Wide bull put spread': [{ k: 'Short put', v: 'Sell 8\u201310\u0394 OTM put (very far OTM)' }, { k: 'Long put', v: 'Buy put 10pts lower' }, { k: 'Entry', v: 'After 7:30am PDT, once panic settles' }, { k: 'Target credit', v: '$120\u2013200 (elevated IV)' }, { k: 'Stop loss', v: '2x credit \u2014 high VIX, faster moves' }, { k: 'Contracts', v: '2\u20133 max, size conservatively' }],
+      'Sit out': [{ k: 'Action', v: 'No trade today' }, { k: 'Next check', v: 'Re-evaluate after 8am PDT' }, { k: 'Alternative', v: 'Paper trade the setup you\u2019d have taken' }, { k: 'Remember', v: 'Sitting out IS a position. Preserve capital.' }]
+    };
+    return map[strategy] || [];
+  }
+
+  rng(seed) {
+    let s = seed >>> 0;
+    return () => {
+      s = (s + 0x6D2B79F5) >>> 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  m(v) { return (v < 0 ? '\u2212$' : '+$') + Math.abs(Math.round(v)).toLocaleString('en-US'); }
+  m0(v) { return (v < 0 ? '\u2212$' : '$') + Math.abs(Math.round(v)).toLocaleString('en-US'); }
+  smooth(pts) {
+    let d = `M ${pts[0][0]},${pts[0][1]}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || pts[i + 1];
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += ` C ${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0]},${p2[1]}`;
+    }
+    return d;
+  }
+
+  DAYS() {
+    return [['Jun 1','Mon'],['Jun 2','Tue'],['Jun 3','Wed'],['Jun 4','Thu'],['Jun 5','Fri'],['Jun 8','Mon'],['Jun 9','Tue'],['Jun 10','Wed'],['Jun 11','Thu'],['Jun 12','Fri'],['Jun 15','Mon'],['Jun 16','Tue'],['Jun 17','Wed'],['Jun 18','Thu'],['Jun 19','Fri']];
+  }
+
+  data() {
+    const all = this.allTrades();
+    const s = Math.min(this.state.startIdx, this.state.endIdx);
+    const e = Math.max(this.state.startIdx, this.state.endIdx);
+    const inst = this.state.instrument;
+    return this.compute(all.filter(t => t.dIdx >= s && t.dIdx <= e && (inst === 'all' || t.kind === inst)));
+  }
+
+  allTrades() {
+    if (this._all) return this._all;
+    const R = this.rng(736251);
+    const pick = a => a[Math.floor(R() * a.length)];
+    const days = this.DAYS();
+    const setups = ['Fade open spike','50 EMA reject','Range edge fade','Trend pullback','Breakout fade','VWAP reversion'];
+    const locs = ['Upper wick','Body high','Body mid','Lower wick'];
+    const emas = ['Above 50 EMA','Below 50 EMA','At 50 EMA'];
+    const mis = ['Revenge entry','Oversized','Chased the move','Moved my stop','Held too long','Cut winner early'];
+    let trades = [], id = 1;
+    days.forEach(([d, dow], dIdx) => {
+      const n = 1 + Math.floor(R() * 3);
+      let hr = 9;
+      for (let k = 0; k < n; k++) {
+        hr += 1 + Math.floor(R() * 2); if (hr > 15) hr = 15;
+        const mn = Math.floor(R() * 59);
+        const isIndex = R() < 0.62;
+        const kind = isIndex ? 'index' : 'stock';
+        const stockBase = { AAPL: 225, TSLA: 340, NVDA: 128, AMZN: 198, MSFT: 445 };
+        const under = isIndex ? (R() < 0.6 ? 'SPX' : 'NDX') : pick(Object.keys(stockBase));
+        const type = R() < 0.5 ? 'Put' : 'Call';
+        const base = isIndex ? (under === 'SPX' ? 5300 : 18600) : stockBase[under];
+        const stepK = isIndex ? (under === 'SPX' ? 5 : 10) : 2.5;
+        const strike = Math.round((base * (type === 'Call' ? 1.005 : 0.995) + (R() - 0.5) * base * 0.012) / stepK) * stepK;
+        const contracts = 1 + Math.floor(R() * 4);
+        const credit = +(2 + R() * 13).toFixed(2);
+        const loc = pick(locs);
+        const mistake = R() < 0.3 ? pick(mis) : null;
+        const good = (type === 'Call' && loc === 'Upper wick') || (type === 'Put' && loc === 'Lower wick');
+        const wp = 0.63 + (good ? 0.17 : 0) - (mistake ? 0.3 : 0);
+        const win = R() < wp;
+        const exit = +Math.max(0.05, win ? credit * (0.1 + R() * 0.45) : credit * (1.15 + R() * 0.7)).toFixed(2);
+        const pnl = Math.round((credit - exit) * 100 * contracts);
+        const risk = 280;
+        const r = +(pnl / risk).toFixed(2);
+        const dur = 6 + Math.floor(R() * 86);
+        const grade = win ? (good && !mistake ? 'A' : mistake ? 'C' : 'B') : (mistake ? 'D' : 'C');
+        // exit reason
+        const pctCaptured = Math.round((1 - exit / credit) * 100); // % of credit kept on winners
+        let exitReason, exitKind;
+        if (win) {
+          exitKind = 'win';
+          exitReason = pctCaptured >= 90 ? `Expired worthless \u00b7 100% kept` : `Closed at ${pctCaptured}% profit target`;
+        } else {
+          exitKind = 'loss';
+          if (mistake) exitReason = mistake;
+          else if (exit >= credit * 1.7) exitReason = R() < 0.5 ? 'Stop hit (3x credit)' : 'Tested short strike \u2014 stopped';
+          else exitReason = R() < 0.5 ? 'Closed early to cap loss' : 'Rolled / cut at 2x credit';
+        }
+        // option structure: credit spreads (short premium), debit spreads (directional), or single leg
+        const structRoll = R();
+        const width = isIndex ? (under === 'SPX' ? pick([10,15,20,25]) : pick([20,30,40])) : pick([2.5,5,7.5]);
+        let structure, legLabel;
+        if (structRoll < 0.34) { structure = type === 'Call' ? 'Call credit spread' : 'Put credit spread'; legLabel = `${strike}/${type === 'Call' ? strike + width : strike - width} ${type} spread`; }
+        else if (structRoll < 0.6) { structure = 'Debit spread'; legLabel = `${strike}/${type === 'Call' ? strike + width : strike - width} ${type} debit`; }
+        else if (structRoll < 0.78) { structure = 'Iron condor'; legLabel = `${strike - width}/${strike}/${strike + width} IC`; }
+        else { structure = 'Single leg'; legLabel = `${strike} ${type}`; }
+        trades.push({ id: id++, dIdx, date: d, dow, time: String(hr).padStart(2,'0') + ':' + String(mn).padStart(2,'0'), hour: hr, kind, under, type, strike, width, structure, legLabel, contracts, credit, exit, pnl, r, dur, setup: pick(setups), loc, ema: pick(emas), mistake, win, grade, pctCaptured, exitReason, exitKind });
+      }
+    });
+    this._all = trades;
+    return trades;
+  }
+
+  compute(trades) {
+    const locs = ['Upper wick','Body high','Body mid','Lower wick'];
+    const n = trades.length;
+    if (!n) return { trades: [], n: 0, wins: 0, losses: 0, net: 0, pf: 0, avgR: 0, exp: 0, avgHold: 0, entryQ: [], mistakes: [], setups: [], eq: [0], eqDates: ['Start'], sessions: [], winRate: 0, empty: true };
+    const wins = trades.filter(t => t.win), losses = trades.filter(t => !t.win);
+    const net = trades.reduce((a, t) => a + t.pnl, 0);
+    const gw = wins.reduce((a, t) => a + t.pnl, 0);
+    const gl = Math.abs(losses.reduce((a, t) => a + t.pnl, 0));
+    const pf = gl ? gw / gl : gw;
+    const avgR = trades.reduce((a, t) => a + t.r, 0) / n;
+    const exp = net / n;
+    const avgHold = Math.round(trades.reduce((a, t) => a + t.dur, 0) / n);
+    const entryQ = locs.map(l => { const ts = trades.filter(t => t.loc === l); const w = ts.filter(t => t.win).length; return { loc: l, n: ts.length, wins: w, rate: ts.length ? w/ts.length : 0, pnl: ts.reduce((a,t)=>a+t.pnl,0) }; }).filter(x => x.n);
+    const misMap = {};
+    trades.forEach(t => { if (t.mistake) { (misMap[t.mistake] = misMap[t.mistake] || { count: 0, pnl: 0 }); misMap[t.mistake].count++; misMap[t.mistake].pnl += t.pnl; } });
+    const mistakes = Object.entries(misMap).map(([k, v]) => ({ label: k, ...v })).sort((a, b) => a.pnl - b.pnl).slice(0, 4);
+    const setupMap = {};
+    trades.forEach(t => { (setupMap[t.setup] = setupMap[t.setup] || { n: 0, w: 0, pnl: 0 }); setupMap[t.setup].n++; if (t.win) setupMap[t.setup].w++; setupMap[t.setup].pnl += t.pnl; });
+    const setups2 = Object.entries(setupMap).map(([k, v]) => ({ k, ...v, rate: v.w / v.n })).filter(x => x.n >= 2);
+    let cum = 0; const eq = [0]; const eqDates = ['Start']; trades.forEach(t => { cum += t.pnl; eq.push(cum); eqDates.push(t.date); });
+    const spxByDate = {};
+    trades.forEach(t => { if (t.under === 'SPX') (spxByDate[t.date] = spxByDate[t.date] || []).push(t); });
+    const sd = Object.keys(spxByDate).sort((a, b) => spxByDate[b].length - spxByDate[a].length).slice(0, 3);
+    const tf = parseInt(this.state.tf || '30', 10);
+    const sessions = sd.map((d, i) => this.buildSession(d, spxByDate[d], 9001 + i * 131, tf));
+    return { trades, n, wins: wins.length, losses: losses.length, net, pf, avgR, exp, avgHold, entryQ, mistakes, setups: setups2, eq, eqDates, sessions, winRate: wins.length / n };
+  }
+
+  buildSession(dateLabel, sessTrades, seed, tfMin) {
+    const R = this.rng(seed + (tfMin || 30));
+    const tf = tfMin || 30;
+    const startMin = 6 * 60 + 30; // 6:30 PT open
+    const N = Math.max(6, Math.round(390 / tf)); // ~6.5h session
+    const VBW = 1000, VBH = 432, L = 58, RP = 14, T = 14, B = 40;
+    const PW = VBW - L - RP, PH = VBH - T - B;
+    const tot = N + 55;
+    const vol = Math.sqrt(tf / 30) * 8.5; // larger bars on higher timeframes
+    let prices = [], p = 5300 + (R() - 0.5) * 40;
+    for (let i = 0; i < tot; i++) { p += (R() - 0.47) * vol; prices.push(p); }
+    const k = 2 / 51; let emaA = [], e = prices[0];
+    for (let i = 0; i < tot; i++) { e = i ? prices[i] * k + e * (1 - k) : prices[i]; emaA.push(e); }
+    const off = tot - N;
+    const closes = prices.slice(off), emaS = emaA.slice(off);
+    const wick = vol * 0.6;
+    let candles = [], prevC = closes[0] - (R() - 0.5) * 6, highs = [], lows = [];
+    for (let i = 0; i < N; i++) {
+      const o = i ? candles[i-1].c : prevC, c = closes[i];
+      const hi = Math.max(o, c) + R() * wick, lo = Math.min(o, c) - R() * wick;
+      candles.push({ o, c, hi, lo }); highs.push(hi); lows.push(lo);
+    }
+    const maxP = Math.max(...highs) + 3, minP = Math.min(...lows) - 3;
+    const y = v => +(T + (maxP - v) / (maxP - minP) * PH).toFixed(1);
+    const step = PW / N, bw = Math.min(22, step * 0.58);
+    const cand = candles.map((c, i) => {
+      const cx = +(L + step * i + step / 2).toFixed(1);
+      const up = c.c >= c.o;
+      const byT = y(Math.max(c.o, c.c)), byB = y(Math.min(c.o, c.c));
+      return { cx, wy1: y(c.hi), wy2: y(c.lo), bx: +(cx - bw/2).toFixed(1), by: byT, bw: +bw.toFixed(1), bh: +Math.max(1, byB - byT).toFixed(1), col: up ? '#1c8c5a' : '#d24b4b', fill: up ? '#a9ddc1' : '#edb6b6' };
+    });
+    const emaPts = emaS.map((v, i) => (L + step * i + step / 2).toFixed(1) + ',' + y(v)).join(' ');
+    const gridY = [0,1,2,3,4].map(g => { const v = maxP - (maxP - minP) * g / 4; const yy = y(v); return { y: yy, ty: +(yy + 4).toFixed(1), label: Math.round(v).toLocaleString() }; });
+    const fmt = m => { let h = Math.floor(m / 60), mm = m % 60; const ap = h >= 12 ? 'p' : 'a'; h = h % 12; if (h === 0) h = 12; return h + ':' + String(mm).padStart(2, '0') + ap; };
+    const nLab = Math.min(7, N);
+    const gridX = Array.from({ length: nLab }, (_, j) => {
+      const i = Math.round(j * (N - 1) / (nLab - 1));
+      return { x: +(L + step * i + step / 2).toFixed(1), label: fmt(startMin + i * tf) };
+    });
+    const fr = [0.18, 0.5, 0.8];    const markers = sessTrades.slice(0, 3).map((t, j) => {
+      const ei = Math.max(0, Math.min(N - 2, Math.round((fr[j % 3]) * (N - 1))));
+      const xi = Math.min(N - 1, ei + Math.max(1, Math.round(N * 0.12)) + Math.round(R() * Math.max(1, N * 0.1)));
+      const ec = candles[ei], xc = candles[xi];
+      const eprice = t.type === 'Call' ? ec.hi : ec.lo;
+      const xprice = t.win ? (t.type === 'Call' ? xc.lo : xc.hi) : (t.type === 'Call' ? xc.hi : xc.lo);
+      const ex = +(L + step * ei + step / 2).toFixed(1), xx = +(L + step * xi + step / 2).toFixed(1);
+      const ey = y(eprice), xy = y(xprice), col = t.win ? '#1c8c5a' : '#d24b4b';
+      const pts = `${ex},${(ey-7).toFixed(1)} ${(ex+7).toFixed(1)},${ey} ${ex},${(ey+7).toFixed(1)} ${(ex-7).toFixed(1)},${ey}`;
+      return { id: t.id, ex, ey, xx, xy, col, pts, leftPct: +(xx / VBW * 100).toFixed(2), topPct: +(xy / VBH * 100).toFixed(2),
+        tip: { title: `${t.under} ${t.legLabel}`, side: `Sold ${t.contracts} @ ${t.credit.toFixed(2)} \u2192 ${t.exit.toFixed(2)}`, pnl: t.pnl, loc: t.loc, ema: t.ema, grade: t.grade, time: t.time } };
+    });
+    const axis = { x0: L, x1: VBW - RP, y: +(T + PH).toFixed(1), labelY: +(T + PH + 18).toFixed(1), xTitleX: +(L + PW / 2).toFixed(1), xTitleY: VBH - 8, yTitleX: 16, yTitleY: +(T + PH / 2).toFixed(1) };
+    return { label: dateLabel, dateLabel, vb: { w: VBW, h: VBH }, candles: cand, ema: emaPts, gridY, gridX, markers, axis, net: sessTrades.reduce((a, t) => a + t.pnl, 0) };
+  }
+
+  renderVals() {
+    const D = this.data();
+    const tone = v => v >= 0 ? 'color:#16794d' : 'color:#f07167';
+    const navRow = key => this.state.active === key
+      ? 'background:#ffffff;color:#0081a7;font-weight:600'
+      : 'background:transparent;color:#ffffff;font-weight:500';
+    const nav = {};
+    ['dashboard','currentday','activepositions','analytics','journal','strategies','fundmgmt'].forEach(k => { nav[k] = { row: navRow(k), onClick: () => this.setState({ active: k }) }; });
+
+    const days = this.DAYS();
+    const sIdx = Math.min(this.state.startIdx, this.state.endIdx);
+    const eIdx = Math.max(this.state.startIdx, this.state.endIdx);
+    const dayCount = eIdx - sIdx + 1;
+    const lastI = days.length - 1;
+    const dt = i => new Date(days[i][0] + ', 2026');
+    const lastDate = dt(lastI);
+    const startForWindow = winDays => {
+      const cut = new Date(lastDate); cut.setDate(cut.getDate() - (winDays - 1));
+      let s = lastI;
+      for (let i = lastI; i >= 0; i--) { if (dt(i) >= cut) s = i; else break; }
+      return s;
+    };
+    const presets = [
+      { label: 'Last 1 Year', s: startForWindow(365), e: lastI },
+      { label: 'Last 1 Month', s: startForWindow(30), e: lastI },
+      { label: 'Last 7 days', s: startForWindow(7), e: lastI },
+      { label: 'Latest day', s: lastI, e: lastI }
+    ];
+    const dateCtl = {
+      startVal: sIdx, endVal: eIdx,
+      startOpts: days.map((d, i) => ({ value: i, label: d[0] + ' (' + d[1] + ')', disabled: i > eIdx })),
+      endOpts: days.map((d, i) => ({ value: i, label: d[0] + ' (' + d[1] + ')', disabled: i < sIdx })),
+      onStart: e => this.setState({ startIdx: +e.target.value, rangePreset: null }),
+      onEnd: e => this.setState({ endIdx: +e.target.value, rangePreset: null }),
+      rangeLabel: days[sIdx][0] + ' \u2013 ' + days[eIdx][0] + ', 2026 \u00b7 ' + dayCount + (dayCount > 1 ? ' days' : ' day'),
+      presets: presets.map(p => ({
+        label: p.label,
+        active: this.state.rangePreset === p.label,
+        onClick: () => this.setState({ startIdx: p.s, endIdx: p.e, rangePreset: p.label }),
+        style: `padding:7px 13px;border-radius:10px;border:1px solid ${this.state.rangePreset === p.label ? '#0081a7' : '#e6e8ee'};background:${this.state.rangePreset === p.label ? '#e0f4f6' : '#fff'};color:${this.state.rangePreset === p.label ? '#0081a7' : '#6b6b7b'};font-weight:${this.state.rangePreset === p.label ? 600 : 500};font-size:13px;cursor:pointer;font-family:'Poppins',sans-serif`
+      }))
+    };
+    const empty = !!D.empty;
+
+    // ── view routing ──
+    const act = this.state.active;
+    const onStrat = act === 'currentday';
+    const onPos = act === 'activepositions';
+    const onFund = act === 'fundmgmt';
+    const onDash = !onStrat && !onPos && !onFund;
+    const dashStyle = onDash ? 'display:block' : 'display:none';
+    const stratStyle = onStrat ? 'display:block' : 'display:none';
+    const posStyle = onPos ? 'display:block' : 'display:none';
+    const fundStyle = onFund ? 'display:block' : 'display:none';
+    const COLORS = {
+      iron:   { accent: '#0081a7', bg: 'rgba(0,129,167,0.06)',  border: 'rgba(0,129,167,0.22)' },
+      fly:    { accent: '#a855f7', bg: 'rgba(168,85,247,0.06)', border: 'rgba(168,85,247,0.22)' },
+      lizard: { accent: '#1c8c5a', bg: 'rgba(28,140,90,0.07)',  border: 'rgba(28,140,90,0.22)' },
+      put:    { accent: '#c97f1a', bg: 'rgba(201,127,26,0.07)', border: 'rgba(201,127,26,0.22)' },
+      call:   { accent: '#f07167', bg: 'rgba(240,113,103,0.07)',border: 'rgba(240,113,103,0.24)' },
+      cal:    { accent: '#00afb9', bg: 'rgba(0,175,185,0.07)',  border: 'rgba(0,175,185,0.24)' },
+      skip:   { accent: '#8a8a9e', bg: 'rgba(138,138,158,0.07)',border: 'rgba(138,138,158,0.24)' }
+    };
+    const dec = this.decide();
+    const c = COLORS[dec.color] || COLORS.iron;
+    const chip = (active, accent) => `padding:7px 15px;border-radius:20px;border:1px solid ${active ? accent : '#e6e8ee'};font-size:12.5px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.15s;background:${active ? accent : '#fff'};color:${active ? '#fff' : '#8a8a9e'};font-weight:${active ? 600 : 500}`;
+    const biasOpts = [['neutral','Neutral / range'],['bullish','Bullish drift'],['bearish','Bearish / selling'],['choppy','Choppy / unclear']];
+    const eventOpts = [['none','None'],['fomc','FOMC'],['cpi','CPI / PPI'],['jobs','Jobs / NFP'],['opex','OPEX / triple witch']];
+    // margin cushion: additive carry from prior months minus current-month losses
+    const fmtC = v => (v < 0 ? '\u2212$' : '$') + Math.abs(Math.round(v)).toLocaleString('en-US');
+    const priorCushions = [['Jan', 1850], ['Feb', 2420], ['Mar', 2090], ['Apr', 2680], ['May', 2710]]; // 25% set-aside carried forward, additive
+    const carried = priorCushions.reduce((a, [, v]) => a + v, 0);
+    const monthLosses = Math.abs(this.allTrades().filter(t => t.pnl < 0).reduce((a, t) => a + t.pnl, 0));
+    const remainingCushion = carried - monthLosses;
+    const cushionPct = Math.max(0, Math.min(100, Math.round(remainingCushion / carried * 100)));
+    const cushion = {
+      carried: fmtC(carried),
+      losses: fmtC(monthLosses),
+      remaining: fmtC(remainingCushion),
+      month: 'Jun',
+      barStyle: `height:100%;width:${cushionPct}%;background:${remainingCushion >= carried * 0.4 ? 'var(--pace-ok)' : remainingCushion > 0 ? 'var(--peach)' : 'var(--pace-bad)'};border-radius:5px`,
+      breakdown: `${priorCushions.length} months accumulated (Jan\u2013May) \u00b7 ${cushionPct}% of buffer left`
+    };
+
+    // news / catalysts
+    const tagStyle = c => `font-size:9.5px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#fff;background:${c};padding:3px 7px;border-radius:5px;flex-shrink:0;margin-top:1px`;
+    const news = [];
+    const ev = this.state.event;
+    if (ev === 'fomc') news.push({ tag: 'FED', tagStyle: tagStyle('#0081a7'), text: 'FOMC rate decision at 11:00am PDT \u2014 expect IV crush after the announcement.', time: 'Today \u00b7 11:00am PDT' });
+    else if (ev === 'cpi') news.push({ tag: 'MACRO', tagStyle: tagStyle('#f07167'), text: 'CPI print at 5:30am PDT \u2014 binary directional risk into the open.', time: 'Today \u00b7 5:30am PDT' });
+    else if (ev === 'jobs') news.push({ tag: 'MACRO', tagStyle: tagStyle('#f07167'), text: 'Nonfarm payrolls at 5:30am PDT \u2014 watch for a gap and reversal.', time: 'Today \u00b7 5:30am PDT' });
+    else if (ev === 'opex') news.push({ tag: 'OPEX', tagStyle: tagStyle('#a855f7'), text: 'Triple-witching expiration \u2014 strong max-pain pinning into the close.', time: 'Today \u00b7 monthly' });
+    news.push({ tag: 'VIX', tagStyle: tagStyle('#0081a7'), text: `VIX near ${this.state.vix} \u2014 ${this.state.vix < 14 ? 'premium compressed, favor butterflies' : this.state.vix < 20 ? 'normal condor territory' : 'elevated, widen strikes'}.`, time: 'Pre-market' });
+    news.push({ tag: 'TECH', tagStyle: tagStyle('#1c8c5a'), text: 'SPX holding above the 50 EMA on the daily \u2014 dips toward it have been bought.', time: 'Pre-market' });
+    news.push({ tag: 'FLOW', tagStyle: tagStyle('#c97f1a'), text: 'Dealer gamma positive \u2014 intraday moves likely mean-reverting.', time: 'Pre-market' });
+
+    const s = {
+      newsDate: 'Jun 29, 2026',
+      news,
+      cushion,
+      vix: this.state.vix,
+      gap: this.state.gap,
+      onVix: e => this.setState({ vix: parseFloat(e.target.value) || 0 }),
+      onGap: e => this.setState({ gap: parseFloat(e.target.value) || 0 }),
+      biasChips: biasOpts.map(([v, label]) => ({ label, onClick: () => this.setState({ bias: v }), style: chip(this.state.bias === v, '#0081a7') })),
+      eventChips: eventOpts.map(([v, label]) => ({ label, onClick: () => this.setState({ event: v }), style: chip(this.state.event === v, '#0081a7') })),
+      res: { strategy: dec.strategy, why: dec.why, credit: dec.credit, maxLoss: dec.maxLoss, winRate: dec.winRate, window: dec.window, accent: c.accent, bg: c.bg, border: c.border },
+      setupRows: this.setupFor(dec.strategy),
+      trace: dec.trace.map(t => ({ text: t.text, dot: t.pass ? '#1c8c5a' : '#f07167' }))
+    };
+
+    const kpi = {
+      net: this.m(D.net), exp: this.m(D.exp), count: D.n,
+      winRate: Math.round(D.winRate * 100) + '%', wins: D.wins + ' winners', losses: D.losses + ' losers',
+      pf: D.pf.toFixed(2), avgR: (D.avgR >= 0 ? '+' : '') + D.avgR.toFixed(2) + 'R', hold: D.avgHold + 'm'
+    };
+
+    const recent = D.trades.slice().reverse().slice(0, 5).map(t => {
+      return {
+        under: t.under,
+        badge: 'background:linear-gradient(135deg,var(--brand),var(--brand-2))',
+        contract: `${t.under} ${t.legLabel}`,
+        meta: `${t.structure} \u00b7 ${t.contracts}x \u00b7 ${t.time} \u00b7 ${t.dow}`,
+        pnl: this.m(t.pnl), pnlColor: tone(t.pnl),
+        setup: t.setup, candle: t.loc,
+        exitReason: t.exitReason,
+        exitSub: t.win ? `Sold ${t.credit.toFixed(2)} \u2192 ${t.exit.toFixed(2)}` : `${t.loc} \u00b7 held ${t.dur}m`,
+        exitColor: t.win ? 'color:#16794d' : 'color:#f07167',
+        exitDot: `width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${t.win ? '#1c8c5a' : '#f07167'}`
+      };
+    });
+
+    const instrument = {
+      opts: [
+        { key: 'all', label: 'All' },
+        { key: 'index', label: 'Index options' },
+        { key: 'stock', label: 'Stock options' }
+      ].map(o => ({
+        label: o.label,
+        onClick: () => this.setState({ instrument: o.key }),
+        style: `padding:7px 14px;border:none;border-radius:9px;font-size:13px;font-weight:${this.state.instrument === o.key ? 600 : 500};font-family:'Poppins',sans-serif;cursor:pointer;background:${this.state.instrument === o.key ? '#fff' : 'transparent'};color:${this.state.instrument === o.key ? '#0081a7' : '#6b6b7b'};box-shadow:${this.state.instrument === o.key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'}`
+      }))
+    };
+
+    // equity chart
+    const eq = D.eq;
+    const eR = 880, eT = 36, eB = 268;
+    const ex = i => +(96 + i / (eq.length - 1) * (eR - 96)).toFixed(1);
+    const emin = Math.min(...eq, 0), emax = Math.max(...eq, 0);
+    const espan = (emax - emin) || 1;
+    const ey = v => +(eB - (v - emin) / espan * (eB - eT)).toFixed(1);
+    const ePts = eq.map((v, i) => [ex(i), ey(v)]);
+    const line = this.smooth(ePts);
+    const equity = {
+      line, area: line + ` L ${ex(eq.length - 1)},${eB} L ${ex(0)},${eB} Z`,
+      endX: ex(eq.length - 1), endY: ey(eq[eq.length - 1]),
+      yticks: [0,1,2,3].map(g => { const v = emax - (emax - emin) * g / 3; const yy = ey(v); return { y: yy, ty: yy + 4, label: this.m0(v), lblStyle: `position:absolute;right:${(100 - 86/900*100 + 0.8).toFixed(2)}%;top:${(yy/302*100).toFixed(2)}%;transform:translateY(-50%);font-family:'Poppins',sans-serif;font-size:12px;color:#9a9ab0;white-space:nowrap` }; }),
+      xlabels: [0,1,2,3,4,5].map(s => { const ti = Math.round(s / 5 * (D.trades.length - 1)); const xx = ex(ti + 1); return { x: xx, label: D.trades[ti].date, lblStyle: `position:absolute;left:${(xx/900*100).toFixed(2)}%;top:${(276/302*100).toFixed(2)}%;transform:translateX(-50%);font-family:'Poppins',sans-serif;font-size:12px;color:#9a9ab0;white-space:nowrap` }; })
+    };
+
+    const C = 2 * Math.PI * 27;
+    const best = D.setups.slice().sort((a, b) => b.rate - a.rate)[0];
+    const worst = D.mistakes[0];
+    const edge = {
+      ringDash: `${(D.winRate * C).toFixed(0)} ${C.toFixed(0)}`,
+      bestSetup: best ? `${best.k} \u2014 ${Math.round(best.rate * 100)}% win, ${this.m(best.pnl)}` : '\u2014',
+      watch: worst ? `${worst.label} \u2014 ${this.m(worst.pnl)} over ${worst.count} trades` : '\u2014'
+    };
+
+    const entryQ = D.entryQ.map(e => ({
+      label: e.loc, rate: Math.round(e.rate * 100) + '%', rateColor: tone(e.rate - 0.5),
+      barStyle: `height:100%;width:${Math.round(e.rate * 100)}%;background:${e.rate >= 0.5 ? '#0081a7' : '#fed9b7'};border-radius:5px`,
+      sub: `${e.n} trades \u00b7 ${this.m(e.pnl)}`
+    }));
+    const mMax = Math.max(...D.mistakes.map(m => Math.abs(m.pnl)), 1);
+    const mistakes = D.mistakes.map(m => ({
+      label: m.label, pnl: this.m(m.pnl),
+      barStyle: `height:100%;width:${Math.round(Math.abs(m.pnl) / mMax * 100)}%;background:#f07167;border-radius:5px`,
+      sub: `${m.count} trade${m.count > 1 ? 's' : ''}`
+    }));
+
+    const tfTabs = [['5','5 min'],['30','30 min'],['60','1 hr']].map(([k, label]) => {
+      const on = (this.state.tf || '30') === k;
+      return { label, onClick: () => this.setState({ tf: k }), style: `padding:6px 13px;border:none;border-radius:8px;font-size:12.5px;font-weight:${on ? 600 : 500};font-family:'Poppins',sans-serif;cursor:pointer;background:${on ? '#fff' : 'transparent'};color:${on ? '#0081a7' : '#6b6b7b'};box-shadow:${on ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'}` };
+    });
+    const hasSessions = (D.sessions || []).length > 0;
+    const noSessions = !hasSessions;
+
+    // ── Active positions (open trades) ──
+    const PR = this.rng(424242);
+    const ppick = a => a[Math.floor(PR() * a.length)];
+    const posDefs = [
+      { under: 'SPX', leg: '5290/5275 Put credit spread', struct: 'Put credit spread', dte: 0 },
+      { under: 'SPX', leg: '5360/5375 Call credit spread', struct: 'Call credit spread', dte: 1 },
+      { under: 'NDX', leg: '18550/18500 Put credit spread', struct: 'Put credit spread', dte: 2 },
+      { under: 'SPX', leg: '5300/5310/5320 Iron condor', struct: 'Iron condor', dte: 0 },
+      { under: 'NVDA', leg: '125/120 Put credit spread', struct: 'Put credit spread', dte: 5 }
+    ];
+    const positions = posDefs.map((p, i) => {
+      const contracts = 1 + Math.floor(PR() * 4);
+      const credit = +(2 + PR() * 9).toFixed(2);
+      const mark = +Math.max(0.05, credit * (0.2 + PR() * 1.1)).toFixed(2);
+      const unreal = Math.round((credit - mark) * 100 * contracts);
+      const delta = (PR() * 0.3 - 0.15).toFixed(2);
+      const pct = Math.round((1 - mark / credit) * 100);
+      let status, sc;
+      if (pct >= 40) { status = 'On target'; sc = '#16794d'; }
+      else if (pct >= 0) { status = 'Working'; sc = '#0081a7'; }
+      else if (mark < credit * 1.6) { status = 'Underwater'; sc = '#c97f1a'; }
+      else { status = 'At risk \u2014 manage'; sc = '#f07167'; }
+      return {
+        under: p.under, badge: 'background:linear-gradient(135deg,var(--brand),var(--brand-2))',
+        leg: `${p.under} ${p.leg}`, struct: `${p.struct} \u00b7 ${contracts}x`,
+        credit: '$' + credit.toFixed(2), mark: '$' + mark.toFixed(2),
+        unreal: this.m(unreal), unrealColor: tone(unreal),
+        dte: p.dte === 0 ? '0DTE' : p.dte + 'D', delta: delta,
+        status, statusStyle: `font-size:12.5px;font-weight:600;color:${sc};background:${sc}14;padding:5px 11px;border-radius:8px;white-space:nowrap`
+      };
+    });
+    const openCredit = positions.reduce((a, p) => a + parseFloat(p.credit.replace('$','')), 0);
+    const openUnreal = positions.reduce((a, p) => a + parseFloat(p.unreal.replace(/[^0-9.\-\u2212]/g,'').replace('\u2212','-')), 0);
+    const posSummary = {
+      count: positions.length,
+      unreal: this.m(openUnreal), unrealColor: tone(openUnreal),
+      atRisk: positions.filter(p => /risk/.test(p.status)).length
+    };
+
+    // ── Fund management ──
+    const fmt0 = v => (v < 0 ? '\u2212$' : '$') + Math.abs(Math.round(v)).toLocaleString('en-US');
+    const fmt2 = v => (v < 0 ? '\u2212$' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const round2 = v => Math.round(v * 100) / 100;
+    const fMonth = this.state.fundMonth || 'Jul 2026';
+    const curMonth = this.monthsBack(1)[0];              // current month, e.g. 'Jul 2026'
+    const quickMonths = this.monthsBack(3).reverse();    // [2 prior, current] as quick tabs
+    const customMonth = !quickMonths.includes(fMonth);   // a month chosen from the dropdown
+    const isCurrent = fMonth === curMonth;
+    const P = this.grossFor(fMonth);            // actual for closed months, projected close for current
+    const carryIn = this.carryInFor(fMonth);    // accumulated loss from prior months (<= 0)
+    const effective = P + carryIn;              // profit after covering prior losses
+    const hasCarryIn = carryIn < -0.5;
+    const taxEntries = this.getTaxEntries();    // configurable list (add / remove / edit)
+    const taxEditWrap = 'display:inline-flex;align-items:center;gap:1px;border:1px solid #e6e8ee;background:#f9fafc;border-radius:8px;padding:3px 8px';
+    const taxableBase = Math.max(0, effective); // no tax owed on a loss
+    const basisAmt = b => (b === 60 ? 0.60 * taxableBase : b === 40 ? 0.40 * taxableBase : taxableBase);
+    const taxComputed = taxEntries.map(t => ({ ...t, amt: basisAmt(t.basis) * (t.rate / 100) }));
+    const totalTax = taxComputed.reduce((a, t) => a + t.amt, 0);
+    const X = effective - totalTax;
+    const expenseList = this.getExpenses();
+    const expenseTotal = expenseList.reduce((a, e) => a + (Number(e.amt) || 0), 0);
+    const Y = X - expenseTotal;                 // fixed expenses always apply
+    const isLoss = Y <= 0;                       // nothing to bank / allocate this month
+    const carryOut = isLoss ? Y : 0;             // shortfall rolls into next month
+
+    // allocation percentages (editable / locked per window rules) + Miscellaneous category
+    const cats = this.catList();
+    const allocObj = { ...this.defaultAllocObj(), ...((this.state.allocPct && this.state.allocPct[fMonth]) || {}) };
+    const editable = this.allocEditable(fMonth);
+    const totalPct = cats.reduce((a, c) => a + (allocObj[c.key] || 0), 0);
+    const totalOk = totalPct === 100;
+    const allocValid = totalOk && !isLoss;
+    // displayed cost-equivalent: 2 decimals; margin cushion absorbs the rounding residual so amounts sum to exactly Y
+    const otherAmtSum = cats.filter(c => c.key !== 'cushion').reduce((a, c) => a + round2(Y * (allocObj[c.key] || 0) / 100), 0);
+    const amtFor = key => key === 'cushion' ? round2(Y - otherAmtSum) : round2(Y * (allocObj[key] || 0) / 100);
+    const allocRows = cats.map(c => {
+      const pctNum = allocObj[c.key] || 0;
+      return {
+        k: c.label, pctNum, locked: !editable,
+        amt: allocValid ? fmt2(amtFor(c.key)) : '\u2014',
+        dot: `width:9px;height:9px;border-radius:50%;flex-shrink:0;background:${c.c}`,
+        bar: `height:8px;border-radius:5px;width:${Math.min(100, pctNum)}%;background:${c.c}`,
+        onInput: e => this.setAlloc(fMonth, c.key, parseInt(e.target.value, 10) || 0),
+        editWrap: `display:inline-flex;align-items:center;gap:1px;border:1px solid ${editable ? '#e6e8ee' : 'transparent'};background:${editable ? '#f9fafc' : 'transparent'};border-radius:8px;padding:${editable ? '3px 8px' : '0 2px'}`
+      };
+    });
+    const cushionPctNum = allocObj.cushion || 0;
+    const cushionAmt = allocValid ? Y * cushionPctNum / 100 : 0;
+    const etfSetAside = allocValid ? Y * (allocObj.etf || 0) / 100 : 0;
+    const stockAmt = allocValid ? Y * (allocObj.stocks || 0) / 100 : 0;
+    const toBank = allocValid ? Y - cushionAmt - etfSetAside - stockAmt : 0;
+
+    // ---- animated allocation donut (60/40 split; hover-linked segments + on-chart labels) ----
+    const chartOn = !!this.state.chartOn && !isLoss;
+    const hoverKey = this.state.hoverAlloc || null;
+    const ringSum = totalPct || 1;                       // wedges fill the disc proportionally
+    const R = 96;
+    let acc = 0;
+    const segList = [];
+    cats.forEach(c => {
+      const pctNum = allocObj[c.key] || 0;
+      if (pctNum <= 0) return;
+      const frac = pctNum / ringSum;
+      const a0 = acc * 2 * Math.PI - Math.PI / 2; acc += frac; const a1 = acc * 2 * Math.PI - Math.PI / 2;
+      const large = frac > 0.5 ? 1 : 0;
+      const x1 = 100 + R * Math.cos(a0), y1 = 100 + R * Math.sin(a0);
+      const x2 = 100 + R * Math.cos(a1), y2 = 100 + R * Math.sin(a1);
+      const mid = (a0 + a1) / 2;
+      segList.push({ key: c.key, label: c.label, color: c.c, pctNum, frac, mid,
+        d: `M100 100 L${x1.toFixed(2)} ${y1.toFixed(2)} A${R} ${R} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`,
+        lx: 100 + R * 0.6 * Math.cos(mid), ly: 100 + R * 0.6 * Math.sin(mid) });
+    });
+    const top3 = [...segList].sort((a, b) => b.pctNum - a.pctNum).slice(0, 3).map(s => s.key);
+    const donutSegs = segList.map(s => {
+      const active = hoverKey === s.key;
+      const dim = hoverKey && !active;
+      const ex = active ? 6 : 0;
+      return {
+        d: s.d,
+        onEnter: () => this.setState({ hoverAlloc: s.key }),
+        onLeave: () => this.setState({ hoverAlloc: null }),
+        style: `fill:${s.color};stroke:#fff;stroke-width:1.5;cursor:pointer;opacity:${dim ? 0.4 : 1};transform:translate(${(ex * Math.cos(s.mid)).toFixed(2)}px,${(ex * Math.sin(s.mid)).toFixed(2)}px) scale(${chartOn ? 1 : 0.01});transform-origin:100px 100px;filter:${active ? `drop-shadow(0 3px 8px ${s.color}aa) brightness(1.06)` : 'none'};transition:transform .7s cubic-bezier(.16,1,.3,1),opacity .25s ease,filter .25s ease`
+      };
+    });
+    const donutLabels = segList.filter(s => s.frac > 0.05 && chartOn).map(s => {
+      const showName = top3.includes(s.key) && s.frac > 0.08;
+      const dimL = hoverKey && hoverKey !== s.key ? 0.3 : 1;
+      return {
+        x: s.lx, name: showName ? s.label : '', pct: s.pctNum + '%',
+        nameY: showName ? s.ly - 8 : s.ly, pctY: showName ? s.ly + 7 : s.ly,
+        nameStyle: `font-size:8.5px;font-weight:600;fill:#fff;paint-order:stroke;stroke:${s.color};stroke-width:2px;text-anchor:middle;dominant-baseline:central;opacity:${dimL};transition:opacity .25s`,
+        pctStyle: `font-size:${showName ? 12 : 13}px;font-weight:700;fill:#fff;paint-order:stroke;stroke:${s.color};stroke-width:2.6px;text-anchor:middle;dominant-baseline:central;opacity:${dimL};transition:opacity .25s`
+      };
+    });
+    let hoverInfo = null;
+    segList.forEach(s => {
+      if (s.key !== hoverKey) return;
+      const ox = 100 + R * 0.78 * Math.cos(s.mid), oy = 100 + R * 0.78 * Math.sin(s.mid);
+      hoverInfo = {
+        label: s.label,
+        amt: allocValid ? fmt2(amtFor(s.key)) : '\u2014',
+        pct: s.pctNum + '%',
+        dotStyle: `width:9px;height:9px;border-radius:3px;background:${s.color};flex-shrink:0`,
+        boxStyle: `position:absolute;left:${(ox / 200 * 100).toFixed(1)}%;top:${(oy / 200 * 100).toFixed(1)}%;transform:translate(-50%,-50%);background:#fff;border:1px solid ${s.color}55;box-shadow:0 6px 20px rgba(20,20,40,0.16);border-radius:11px;padding:9px 12px;pointer-events:none;white-space:nowrap;z-index:5`
+      };
+    });
+    const chart = {
+      show: !isLoss,
+      donutSegs,
+      donutLabels,
+      hoverInfo,
+      donutGroup: 'transform:rotate(-90deg);transform-origin:100px 100px',
+      wrapStyle: `display:flex;gap:24px;flex-wrap:wrap;align-items:stretch;margin:4px 0;opacity:${chartOn ? 1 : 0};transform:scale(${chartOn ? 1 : 0.82});transform-origin:center;transition:opacity .7s ease,transform .7s cubic-bezier(.16,1,.3,1)`,
+      showCenter: !totalOk,
+      centerPct: totalPct + '%',
+      centerPctStyle: 'font-size:40px;font-weight:800;line-height:1;color:#d1495b',
+      centerLabel: 'must total 100%',
+      centerLabelStyle: 'font-size:12px;letter-spacing:0.04em;margin-top:4px;color:#d1495b',
+      showError: !totalOk,
+      errorText: `Allocations total ${totalPct}% \u2014 adjust rows so they sum to exactly 100% (${totalPct > 100 ? 'over by ' + (totalPct - 100) : 'short by ' + (100 - totalPct)}%).`,
+      legend: cats.map(c => {
+        const pctNum = allocObj[c.key] || 0;
+        const active = hoverKey === c.key;
+        return {
+          label: c.label, pctNum, locked: !editable,
+          amt: allocValid ? fmt2(amtFor(c.key)) : '\u2014',
+          dot: `width:13px;height:13px;border-radius:4px;background:${c.c};flex-shrink:0;box-shadow:0 1px 3px ${c.c}66`,
+          rowStyle: `display:flex;align-items:center;gap:12px;padding:7px 8px;margin:0 -8px;border-radius:9px;background:${active ? c.c + '18' : 'transparent'};transition:background .2s`,
+          onEnter: () => this.setState({ hoverAlloc: c.key }),
+          onLeave: () => this.setState({ hoverAlloc: null }),
+          onInput: e => this.setAlloc(fMonth, c.key, parseInt(e.target.value, 10) || 0),
+          editWrap: `display:inline-flex;align-items:center;gap:1px;border:1px solid ${editable ? '#e6e8ee' : 'transparent'};background:${editable ? '#f9fafc' : 'transparent'};border-radius:8px;padding:${editable ? '3px 8px' : '0 2px'}`
+        };
+      })
+    };
+
+
+    // needs-attention alerts (current-month view)
+    const alerts = [];
+    if (!totalOk) alerts.push(`Allocation totals ${totalPct}% \u2014 adjust to 100%`);
+    const cushionHealthPct = (typeof cushionPct === 'number') ? cushionPct : null;
+    if (cushionHealthPct !== null && cushionHealthPct < 40) alerts.push(`Margin cushion at ${cushionHealthPct}% of buffer \u2014 raise the cushion set-aside`);
+    const attnHas = alerts.length > 0;
+    const attn = {
+      items: alerts, has: attnHas,
+      wrap: `display:flex;gap:12px;align-items:flex-start;border-radius:14px;padding:14px 16px;margin-bottom:16px;background:${attnHas ? '#fff6ec' : '#eef8f2'};border:1px solid ${attnHas ? '#f0d3a3' : '#c6e8d5'}`,
+      iconColor: attnHas ? '#c97f1a' : '#1c8c5a',
+      title: attnHas ? `${alerts.length} item${alerts.length > 1 ? 's' : ''} ${alerts.length > 1 ? 'need' : 'needs'} attention` : `All on track for ${fMonth}`,
+      titleColor: attnHas ? '#8a5a12' : '#16794d',
+      itemColor: '#8a5a12'
+    };
+
+    // ETF sub-allocation (editable list — splits the "Reinvest in ETF" bucket)
+    const etfItems = this.getEtfs();
+    const etfBucket = etfSetAside;
+    const etfTotalPct = etfItems.reduce((a, f) => a + (Number(f.pct) || 0), 0);
+    const etfOk = etfTotalPct === 100;
+    const etfEditWrap = `display:inline-flex;align-items:center;gap:1px;border:1px solid ${editable ? '#e6e8ee' : 'transparent'};background:${editable ? '#f9fafc' : 'transparent'};border-radius:8px;padding:${editable ? '3px 8px' : '0 2px'}`;
+    const etfRows = etfItems.map(f => {
+      const pctNum = Number(f.pct) || 0;
+      return {
+        id: f.id, ticker: f.ticker, name: f.name, note: f.note, pctNum, locked: !editable,
+        amt: etfOk ? fmt0(etfBucket * pctNum / 100) : '\u2014',
+        dot: `width:9px;height:9px;border-radius:50%;flex-shrink:0;background:${f.c}`,
+        bar: `height:8px;border-radius:5px;width:${Math.min(100, pctNum)}%;background:${f.c}`,
+        editWrap: etfEditWrap,
+        delStyle: editable ? 'flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:none;background:none;color:#c3c3d0;cursor:pointer;border-radius:7px' : 'display:none',
+        onTicker: e => this.setEtfField(f.id, 'ticker', e.target.value),
+        onName: e => this.setEtfField(f.id, 'name', e.target.value),
+        onNote: e => this.setEtfField(f.id, 'note', e.target.value),
+        onPct: e => this.setEtfField(f.id, 'pct', parseInt(e.target.value, 10) || 0),
+        onDelete: () => this.delEtf(f.id)
+      };
+    });
+
+    // current-month (July) target / achieved / pace
+    const mtdRaw = this.julyMTD();
+    const paceRatio = mtdRaw.projected / mtdRaw.target;
+    const RC = 2 * Math.PI * 32;
+    const mtdStatus = paceRatio >= 1.05 ? 'Ahead of pace' : paceRatio >= 0.95 ? 'On track' : 'Behind pace';
+    const mtdGood = paceRatio >= 0.95;
+    const mtd = {
+      achieved: fmt0(mtdRaw.achieved), target: fmt0(mtdRaw.target), projected: fmt0(mtdRaw.projected),
+      daysLabel: `${mtdRaw.elapsed} of ${mtdRaw.total} trading days`,
+      pct: Math.round(paceRatio * 100) + '%',
+      ringDash: `${(Math.min(paceRatio, 1) * RC).toFixed(0)} ${RC.toFixed(0)}`,
+      barStyle: `height:100%;width:${Math.min(100, Math.round(mtdRaw.achieved / mtdRaw.target * 100))}%;background:var(--peach);border-radius:5px`,
+      status: `${mtdStatus} \u00b7 projected ${fmt0(mtdRaw.projected)}`,
+      statusDot: `width:9px;height:9px;border-radius:50%;flex-shrink:0;background:${mtdGood ? 'var(--pace-ok)' : 'var(--pace-warn)'}`
+    };
+    const holidays = {
+      note: 'No half-day sessions this month',
+      list: [
+        { name: 'Independence Day (observed)', date: 'Friday, Jul 3, 2026', tag: 'Market closed',
+          dot: 'width:9px;height:9px;border-radius:50%;flex-shrink:0;background:#f07167',
+          tagStyle: 'font-size:11px;font-weight:600;color:#f07167;background:rgba(240,113,103,0.12);padding:4px 10px;border-radius:8px;white-space:nowrap' }
+      ]
+    };
+
+    // current-month daily profit report (month-to-date)
+    const dailyRaw = [ { date: 'Wed, Jul 1', trades: 3, pnl: 980 }, { date: 'Thu, Jul 2', trades: 2, pnl: 800 } ];
+    const daily = dailyRaw.map(d => ({ date: d.date, sub: `${d.trades} trades`, pnl: fmt0(d.pnl), pnlColor: d.pnl >= 0 ? 'color:var(--profit)' : 'color:var(--danger)' }));
+
+    const q = this.quarterFor(fMonth);          // non-null only in estimated-tax payment months
+    const fund = {
+      month: fMonth,
+      gross: fmt0(P),
+      grossBg: P < 0 ? 'linear-gradient(135deg,var(--loss),var(--danger))' : 'linear-gradient(135deg,var(--brand),var(--brand-2))',
+      grossBandStyle: isCurrent ? 'display:none' : 'display:flex',
+      curBandStyle: isCurrent ? 'display:block' : 'display:none',
+      compFlex: isCurrent ? 'display:none' : 'display:flex',   // end-of-month accounting, completed months only
+      compBlock: (isCurrent || isLoss) ? 'display:none' : 'display:block',
+      mtd, holidays, daily, attn,
+      taxRows: taxComputed.map(t => ({
+        id: t.id, name: t.name, basis: String(t.basis), v: fmt0(t.amt), rate: t.rate, editWrap: taxEditWrap,
+        onName: e => this.setTaxEntry(t.id, 'name', e.target.value),
+        onBasis: e => this.setTaxEntry(t.id, 'basis', e.target.value),
+        onRate: e => this.setTaxEntry(t.id, 'rate', parseFloat(e.target.value) || 0),
+        onDelete: () => this.delTaxEntry(t.id)
+      })),
+      onAddTax: () => this.addTaxEntry(),
+      totalTax: fmt0(totalTax),
+      effRate: taxableBase > 0 ? Math.round(totalTax / taxableBase * 100) + '%' : '0%',
+      afterTax: fmt0(X),
+      expenseRows: expenseList.map(e => ({
+        id: e.id, name: e.name, amt: e.amt,
+        onName: ev => this.setExpense(e.id, 'name', ev.target.value),
+        onAmt: ev => this.setExpense(e.id, 'amt', parseInt(ev.target.value, 10) || 0),
+        onDelete: () => this.delExpense(e.id)
+      })),
+      onAddExpense: () => this.addExpense(),
+      remaining: fmt0(Y),
+      onSeeCushion: () => this.setState({ active: 'currentday' }),
+      dirty: !!this.state.fundDirty,
+      saved: !!this.state.fundSaved,
+      onUpdate: () => this.commitUpdates(),
+      onDiscard: () => this.discardUpdates(),
+      quarterStyle: q ? 'display:block' : 'display:none',
+      quarterLabel: q ? `${q.quarter} estimated tax due \u00b7 ${fMonth}` : '',
+      quarterTotal: q ? fmt0(q.total) : '$0',
+      qRows: [0,1,2,3].map(i => {
+        const x = q && q.months[i];
+        return { show: x ? 'display:flex' : 'display:none', label: x ? x.label : '', v: x ? fmt0(x.tax) : '' };
+      }),
+      carryStyle: (!isCurrent && (hasCarryIn || isLoss)) ? 'display:block' : 'display:none',
+      carryAccent: isLoss ? 'var(--loss)' : 'var(--profit)',
+      carryInLabel: hasCarryIn ? `Loss carried in from prior months` : `No loss carried in`,
+      carryInVal: fmt0(carryIn),
+      carryInShow: hasCarryIn ? 'display:flex' : 'display:none',
+      carryTitle: isLoss ? 'Carryover loss' : 'Prior loss recovered',
+      carrySub: isLoss
+        ? (hasCarryIn ? `This month\u2019s ${fmt0(P)} plus fixed expenses deepens the running loss \u2014 no tax, nothing to bank.` : `Loss month \u2014 no tax owed, fixed expenses still apply, nothing to bank.`)
+        : `This month\u2019s profit fully absorbed the prior loss before tax and allocation.`,
+      carryOutLabel: 'Carried forward to next month',
+      carryOutVal: fmt0(carryOut),
+      carryOutColor: carryOut < 0 ? 'color:var(--loss)' : 'color:var(--profit)',
+      toBank: isLoss ? '$0' : (allocValid ? fmt0(toBank) : '\u2014'),
+      transferBg: isLoss ? 'var(--tint-red)' : (allocValid ? 'linear-gradient(135deg,var(--profit-2),var(--profit))' : 'var(--border)'),
+      transferColor: isLoss ? 'var(--loss)' : (allocValid ? 'var(--card)' : 'var(--muted-2)'),
+      transferSub: isLoss
+        ? 'Loss month \u2014 nothing to transfer. The shortfall carries into next month.'
+        : (allocValid ? 'After-tax, after-expenses profit minus the margin-cushion set-aside and ETF reinvestment' : `Allocation totals ${totalPct}% \u2014 set it to 100% to release the transfer`),
+      cushionShareNote: (isLoss || !allocValid) ? '' : `${cushionPctNum}% kept back as cushion`,
+      reinvestNote: (isLoss || !allocValid) ? '' : `${fmt0(etfSetAside)} reinvested in ETF`,
+      formulaChip: `${fmt0(Y)} \u2212 ${fmt0(cushionAmt)} cushion \u2212 ${fmt0(etfSetAside)} ETF \u2212 ${fmt0(stockAmt)} stocks = ${fmt0(toBank)}`,
+      formulaStyle: (isLoss || !allocValid) ? 'display:none' : 'display:inline-block;margin-top:9px;font-size:11.5px;font-weight:600;background:rgba(255,255,255,0.18);padding:4px 10px;border-radius:8px',
+      etf: {
+        bucket: fmt0(etfBucket),
+        rows: etfRows,
+        totalPct: etfTotalPct + '%',
+        totalStyle: `font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;color:${etfOk ? '#16794d' : '#f07167'};background:${etfOk ? 'rgba(28,140,90,0.12)' : 'rgba(240,113,103,0.12)'}`,
+        totalPctColor: etfOk ? 'color:#16794d' : 'color:#f07167',
+        totalLabel: etfOk ? 'Splits 100%' : `Splits ${etfTotalPct}% \u2014 adjust to 100%`,
+        onAdd: () => this.addEtf(),
+        addStyle: editable ? "display:flex;align-items:center;gap:5px;border:1px solid #e6e8ee;background:#f9fafc;color:#0081a7;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;padding:6px 11px;border-radius:9px;cursor:pointer" : 'display:none'
+      },
+      chart,
+      alloc: {
+        rows: allocRows,
+        lockLabel: editable ? (isCurrent ? 'Editable \u2014 current month' : 'Editable \u2014 grace window (first 7 days)') : 'Locked \u2014 allocation window closed',
+        lockStyle: `font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;color:${editable ? '#16794d' : '#8a8a9e'};background:${editable ? 'rgba(28,140,90,0.12)' : 'rgba(138,138,158,0.12)'}`,
+        totalLabel: totalOk ? 'Totals 100%' : `Totals ${totalPct}% \u2014 adjust to 100%`,
+        totalStyle: `font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;color:${totalOk ? '#16794d' : '#f07167'};background:${totalOk ? 'rgba(28,140,90,0.12)' : 'rgba(240,113,103,0.12)'}`
+      },
+      monthTabs: quickMonths.map(mo => ({ label: mo === curMonth ? mo + ' \u00b7 Current' : mo, onClick: () => this.setState({ fundMonth: mo }), style: `padding:7px 14px;border-radius:10px;border:1px solid ${fMonth===mo?'#0081a7':'#e6e8ee'};background:${fMonth===mo?'#e0f4f6':'#fff'};color:${fMonth===mo?'#0081a7':'#6b6b7b'};font-weight:${fMonth===mo?600:500};font-size:13px;cursor:pointer;font-family:'Poppins',sans-serif` })),
+      picker: {
+        value: quickMonths.includes(fMonth) ? '' : fMonth,
+        opts: this.monthsBack(24).map(mo => ({ value: mo, label: mo })),
+        onChange: e => { if (e.target.value) this.setState({ fundMonth: e.target.value }); },
+        style: `padding:7px 12px;border-radius:10px;border:1px solid ${customMonth?'#0081a7':'#e6e8ee'};background:${customMonth?'#e0f4f6':'#fff'};color:${customMonth?'#0081a7':'#6b6b7b'};font-weight:${customMonth?600:500};font-size:13px;cursor:pointer;font-family:'Poppins',sans-serif;outline:none`
+      }
+    };
+
+    return { nav, kpi, recent, sessions: D.sessions, equity, edge, entryQ, mistakes, dateCtl, empty, instrument, s, dashStyle, stratStyle, posStyle, fundStyle, tfTabs, hasSessions, noSessions, positions, posSummary, fund };
+  }
+}
+</script>
+</body>
+</html>
