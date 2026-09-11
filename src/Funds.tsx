@@ -23,6 +23,16 @@ const cash = (value: string | number | null | undefined) => { const amount = typ
 const signedCash = (value: number) => value > 0 ? `+${cash(value)}` : cash(value)
 const LEVERAGE_STARTING_CASH = numeric(import.meta.env.VITE_LEVERAGE_STARTING_CASH || '30000')
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+const cumulativeLossCarryforward = (months: Monthly[], throughMonth: string) => months
+  .filter(item => item.allocation_month.slice(0, 7) <= throughMonth)
+  .sort((a, b) => a.allocation_month.localeCompare(b.allocation_month))
+  .reduce((carry, item) => {
+    const afterTaxProfit = item.after_tax_profit === null
+      ? numeric(item.gross_profit) - numeric(item.total_tax)
+      : numeric(item.after_tax_profit)
+    const profitAfterFixedCosts = afterTaxProfit - numeric(item.fixed_expenses)
+    return Math.max(0, carry - profitAfterFixedCosts)
+  }, 0)
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } })
@@ -79,7 +89,7 @@ export default function Funds() {
     <section className="fund-title-row"><div><span className="eyebrow">Live fund operations</span><h1>Fund management</h1><p>Bookkeeping and allocation data from the Fund Management API.</p></div><div className="api-connected"><Cloud size={15} /><span>API connected</span><small>Default v{activeDefault.version}</small></div></section>
     <section className="month-switcher fund-api-months">{availableMonths.map(value => <button key={value} className={selected === value ? 'active' : ''} onClick={() => setSelected(value)}>{monthLabel(value)}{value === current ? ' · Current' : ''}</button>)}</section>
     {error && <div className="api-warning"><AlertCircle size={16} /><span>{error}</span><button onClick={() => setError('')}>Dismiss</button></div>}
-    {selected === current ? <CurrentMonth daily={daily} monthly={monthly} config={config} activeDefault={activeDefault} onChange={update} /> : snapshot ? <MonthlySnapshot snapshot={snapshot} /> : <State icon={<AlertCircle />} title="No monthly snapshot" detail={`The API has no allocation snapshot for ${monthLabel(selected)}.`} />}
+    {selected === current ? <CurrentMonth daily={daily} monthly={monthly} config={config} activeDefault={activeDefault} onChange={update} /> : snapshot ? <MonthlySnapshot snapshot={snapshot} monthly={monthly} /> : <State icon={<AlertCircle />} title="No monthly snapshot" detail={`The API has no allocation snapshot for ${monthLabel(selected)}.`} />}
     {selected === current && (dirty || saved) && <div className={`save-dock ${saved ? 'success' : ''}`}>{saved ? <><Check size={17} /><b>Default version {activeDefault.version} published</b></> : <><span>{configurationValid ? 'Unsaved default changes' : 'Allocation totals need attention'}</span><button onClick={() => { setConfig(clone(activeDefault.configuration)); setDirty(false) }}>Discard</button><button className="save" disabled={saving || !configurationValid} onClick={() => void publish()}>{saving ? <LoaderCircle className="spin" size={14} /> : <Save size={14} />}{saving ? 'Publishing…' : 'Publish new default'}</button></>}</div>}
   </>
 }
@@ -94,9 +104,10 @@ function CurrentMonth({ daily, monthly, config, activeDefault, onChange }: { dai
   const activeDays = daily.filter(row => numeric(row.realized_pnl) !== 0 || numeric(row.total_commission) !== 0).length
   const current = monthKey()
   const priorMonths = monthly.filter(item => item.allocation_month.slice(0, 7) < current).sort((a, b) => a.allocation_month.localeCompare(b.allocation_month))
-  const priorPnl = priorMonths.reduce((sum, item) => sum + numeric(item.gross_profit), 0)
-  const yearToDatePnl = priorMonths.filter(item => item.allocation_month.startsWith(current.slice(0, 4))).reduce((sum, item) => sum + numeric(item.gross_profit), gross)
   const latestPriorMonth = priorMonths.at(-1)?.allocation_month.slice(0, 7)
+  const priorLossCarryforward = latestPriorMonth ? cumulativeLossCarryforward(priorMonths, latestPriorMonth) : 0
+  const priorPnl = -priorLossCarryforward
+  const yearToDatePnl = priorMonths.filter(item => item.allocation_month.startsWith(current.slice(0, 4))).reduce((sum, item) => sum + numeric(item.gross_profit), gross)
   const availableLeverageCash = LEVERAGE_STARTING_CASH + priorPnl + gross
   const total = config.distribution.reduce((sum, item) => sum + numeric(item.percentage), 0)
   const expenseTotal = config.fixedExpenses.reduce((sum, item) => sum + numeric(item.amount), 0)
@@ -116,10 +127,10 @@ function CurrentMonth({ daily, monthly, config, activeDefault, onChange }: { dai
   </>
 }
 
-function MonthlySnapshot({ snapshot }: { snapshot: Monthly }) {
+function MonthlySnapshot({ snapshot, monthly }: { snapshot: Monthly; monthly: Monthly[] }) {
   const state = snapshot.allocation_state
   const distribution = state.distribution || []
-  const loss = numeric(state.lossCarryforward)
+  const loss = cumulativeLossCarryforward(monthly, snapshot.allocation_month.slice(0, 7))
   return <><section className={`closed-month-band api-snapshot-band ${numeric(snapshot.gross_profit) < 0 ? 'negative' : ''}`}><div><span>Gross realized profit · {monthLabel(snapshot.allocation_month)}</span><strong>{cash(snapshot.gross_profit)}</strong><small>{state.source?.tradingDayCount || 0} trading days · calculation v{snapshot.calculation_version}</small></div><div><span>Total tax<b>{cash(snapshot.total_tax)}</b></span><span>After tax<b>{cash(snapshot.after_tax_profit)}</b></span><span>Fixed expenses<b>{cash(snapshot.fixed_expenses)}</b></span><span>Remaining profit<b>{cash(snapshot.remaining_profit)}</b></span></div><aside><span>Transfer to bank</span><strong>{cash(snapshot.transfer_to_bank)}</strong><small className={`snapshot-status ${snapshot.status.toLowerCase()}`}>{snapshot.status}</small></aside></section>{loss > 0 && <div className="carry-banner"><AlertCircle size={18} /><div><b>Loss carried forward</b><span>{cash(loss)} remains to be recovered by a future profitable month.</span></div></div>}<section className="bookkeeping-grid snapshot-details"><article className="card"><div className="card-heading"><div><span className="eyebrow">API calculation</span><h2>Taxes</h2></div><span className="record-count">Default v{snapshot.default_version_id}</span></div>{(state.taxes || []).map(tax => <div className="snapshot-row" key={tax.id}><div><b>{tax.label}</b><span>{tax.basis.kind === 'total_profit' ? 'Total profit' : `${tax.basis.percentage}% profit portion`} · {tax.ratePercentage}%</span></div><strong>{cash(tax.amount)}</strong></div>)}<div className="ledger-total"><span>Total tax</span><strong>{cash(snapshot.total_tax)}</strong></div></article><article className="card"><div className="card-heading"><div><span className="eyebrow">API calculation</span><h2>Fixed expenses</h2></div></div>{(state.fixedExpenses || []).map(expense => <div className="snapshot-row" key={expense.id}><b>{expense.label}</b><strong>{cash(expense.amount)}</strong></div>)}<div className="ledger-total"><span>Total fixed expenses</span><strong>{cash(snapshot.fixed_expenses)}</strong></div></article></section><section className="card allocation-section snapshot-allocation"><div className="card-heading"><div><span className="eyebrow">Recorded monthly snapshot</span><h2>Distribution</h2></div><span className="read-only-chip">Read only</span></div><div className="allocation-layout"><div className="allocation-donut" style={{ background: gradient(distribution) }}><div><b>{distribution.reduce((sum, item) => sum + numeric(item.percentage), 0)}%</b><span>{cash(state.distributionBase)}</span></div></div><div className="snapshot-distribution">{distribution.map(item => <div className="snapshot-row" key={item.id}><i style={{ background: item.color }} /><div><b>{item.label}</b><span>{item.percentage}%{item.children?.length ? ` · ${item.children.map(child => `${child.ticker} ${child.percentage}%`).join(' · ')}` : ''}</span></div><strong>{cash(item.amount)}</strong></div>)}</div></div></section></>
 }
 
