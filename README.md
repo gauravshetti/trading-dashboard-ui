@@ -18,6 +18,13 @@ Start that service before opening the page. To use another API origin:
 VITE_ALLOCATIONS_API_URL=http://localhost:7810 npm run dev
 ```
 
+Leverage cash starts at `$30,000` by default. Override that opening balance when
+starting the UI if needed:
+
+```bash
+VITE_LEVERAGE_STARTING_CASH=30000 npm run dev
+```
+
 The page uses the versioned `/api/v1` allocation endpoints. Historical monthly
 snapshots are read-only; publishing configuration changes creates a new default
 version through `POST /api/v1/allocations/defaults`.
