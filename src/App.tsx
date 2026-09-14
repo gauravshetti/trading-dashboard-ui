@@ -19,6 +19,22 @@ const navItems: { id: Screen; label: string; icon: typeof LayoutDashboard }[] = 
   { id: 'funds', label: 'Fund management', icon: WalletCards },
 ]
 
+const screenPaths: Record<Screen, string> = {
+  dashboard: '/',
+  strategy: '/current-day',
+  positions: '/positions',
+  analytics: '/analytics',
+  journal: '/journal',
+  funds: '/fund-management',
+}
+const appBase = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '')
+const pathForScreen = (screen: Screen) => `${appBase}${screenPaths[screen]}` || '/'
+const screenForPath = (pathname: string): Screen | null => {
+  const relativePath = appBase && (pathname === appBase || pathname.startsWith(`${appBase}/`)) ? pathname.slice(appBase.length) || '/' : pathname
+  const normalizedPath = relativePath !== '/' ? relativePath.replace(/\/+$/, '') : relativePath
+  return (Object.keys(screenPaths) as Screen[]).find(screen => screenPaths[screen] === normalizedPath) || null
+}
+
 function StatCard({ label, value, detail, tone = 'default' }: { label: string; value: string; detail: string; tone?: 'default' | 'profit' | 'loss' }) {
   return (
     <article className={`stat-card ${tone}`}>
@@ -181,16 +197,35 @@ function Journal() {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('dashboard')
+  const [screen, setScreen] = useState<Screen>(() => screenForPath(window.location.pathname) || 'dashboard')
   const [dark, setDark] = useState(false)
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light' }, [dark])
+  useEffect(() => {
+    const syncScreenToUrl = () => {
+      const nextScreen = screenForPath(window.location.pathname)
+      if (nextScreen) setScreen(nextScreen)
+      else {
+        window.history.replaceState({}, '', pathForScreen('dashboard'))
+        setScreen('dashboard')
+      }
+    }
+    syncScreenToUrl()
+    window.addEventListener('popstate', syncScreenToUrl)
+    return () => window.removeEventListener('popstate', syncScreenToUrl)
+  }, [])
   const content = useMemo(() => ({ dashboard: <Dashboard />, strategy: <Strategy />, positions: <Positions />, analytics: <Analytics />, journal: <Journal />, funds: <Funds /> })[screen], [screen])
+  const navigate = (nextScreen: Screen) => {
+    const nextPath = pathForScreen(nextScreen)
+    if (window.location.pathname !== nextPath) window.history.pushState({}, '', nextPath)
+    setScreen(nextScreen)
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }
 
   return (
     <div className="app-shell">
       <header className="topbar">
-        <button className="brand" onClick={() => setScreen('dashboard')} aria-label="Open dashboard"><span><TrendingUp /></span><b>Trade<span>Flow</span></b></button>
-        <nav>{navItems.map(item => { const Icon = item.icon; return <button key={item.id} className={screen === item.id ? 'active' : ''} onClick={() => setScreen(item.id)} title={item.label}><Icon size={17} /><span>{item.label}</span></button> })}</nav>
+        <a className="brand" href={pathForScreen('dashboard')} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate('dashboard') } }} aria-label="Open dashboard"><span><TrendingUp /></span><b>Trade<span>Flow</span></b></a>
+        <nav>{navItems.map(item => { const Icon = item.icon; return <a key={item.id} href={pathForScreen(item.id)} className={screen === item.id ? 'active' : ''} aria-current={screen === item.id ? 'page' : undefined} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate(item.id) } }} title={item.label}><Icon size={17} /><span>{item.label}</span></a> })}</nav>
         <div className="top-actions"><button className="icon-button" onClick={() => setDark(value => !value)} aria-label="Toggle color theme">{dark ? <Sun /> : <Moon />}</button><button className="import-button"><Download size={16} /> Import trades</button></div>
       </header>
       <main>{content}</main>
