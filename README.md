@@ -12,6 +12,15 @@ npm run dev
 Open the local URL printed by Vite.
 
 Fund Management reads from the local Fund Management API at `http://localhost:7810`.
+Month tabs use `/api/v1/allocations/monthly/months`; selecting a historical
+month fetches `/api/v1/allocations/monthly/{YYYY-MM}` afresh. Switching tabs
+cancels the previous request. The full monthly snapshot list is not downloaded.
+The API must provide `operating_summary` on month details and
+`/api/v1/allocations/monthly/{YYYY-MM}/operating-summary` for the current month,
+even when no current snapshot exists. These summaries supply cumulative losses
+after taxes and fixed expenses, and prior-month bookkeeping totals for YTD.
+Unavailable summaries show missing balances rather than zero; tax-summary loss
+is not a substitute for expense-inclusive operating carryforward.
 Start that service before opening the page. To use another API origin:
 
 ```bash

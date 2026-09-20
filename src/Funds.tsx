@@ -12,6 +12,11 @@ type AllocationDefault = { version_id: number; configuration_name: string; versi
 type AllocationState = { source?: { kind?: string; tradingDayCount?: number }; taxes?: Tax[]; distribution?: Distribution[]; fixedExpenses?: Expense[]; lossCarryforward?: string; distributionBase?: string }
 type Monthly = { allocation_month: string; default_version_id: number; status: 'DRAFT' | 'FINAL'; gross_profit: string | null; total_tax: string | null; after_tax_profit: string | null; fixed_expenses: string | null; remaining_profit: string | null; transfer_to_bank: string | null; allocation_state: AllocationState; calculation_version: number; editable_until: string | null; finalized_at: string | null }
 type Daily = { trading_day: string; realized_pnl: string; total_commission: string | null; net_pnl: string | null }
+type OperatingSummary = { latest_prior_month: string | null } & (
+  { status: 'available'; opening_loss_carryforward: string; closing_loss_carryforward: string; ytd_prior_months: { gross_profit: string } } |
+  { status: 'unavailable'; reason: string }
+)
+type MonthDetail = Monthly & { operating_summary?: OperatingSummary }
 
 const monthKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` }
 const monthEnd = (month: string) => { const [y, m] = month.split('-').map(Number); return `${month}-${new Date(y, m, 0).getDate()}` }
@@ -23,16 +28,6 @@ const cash = (value: string | number | null | undefined) => { const amount = typ
 const signedCash = (value: number) => value > 0 ? `+${cash(value)}` : cash(value)
 const LEVERAGE_STARTING_CASH = numeric(import.meta.env.VITE_LEVERAGE_STARTING_CASH || '30000')
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T
-const cumulativeLossCarryforward = (months: Monthly[], throughMonth: string) => months
-  .filter(item => item.allocation_month.slice(0, 7) <= throughMonth)
-  .sort((a, b) => a.allocation_month.localeCompare(b.allocation_month))
-  .reduce((carry, item) => {
-    const afterTaxProfit = item.after_tax_profit === null
-      ? numeric(item.gross_profit) - numeric(item.total_tax)
-      : numeric(item.after_tax_profit)
-    const profitAfterFixedCosts = afterTaxProfit - numeric(item.fixed_expenses)
-    return Math.max(0, carry - profitAfterFixedCosts)
-  }, 0)
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } })
@@ -43,7 +38,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export default function Funds() {
   const current = monthKey()
   const [selected, setSelected] = useState(current)
-  const [monthly, setMonthly] = useState<Monthly[]>([])
+  const [months, setMonths] = useState<string[]>([])
+  const [summary, setSummary] = useState<OperatingSummary | null>(null)
+  const [summaryError, setSummaryError] = useState('')
+  const [monthState, setMonthState] = useState<{ month: string; snapshot?: MonthDetail; error?: string }>({ month: '' })
+  const [monthRetry, setMonthRetry] = useState(0)
   const [daily, setDaily] = useState<Daily[]>([])
   const [activeDefault, setActiveDefault] = useState<AllocationDefault | null>(null)
   const [config, setConfig] = useState<Config | null>(null)
@@ -56,19 +55,35 @@ export default function Funds() {
   const load = useCallback(async () => {
     setLoading(true); setError('')
     try {
-      const [defaults, months, days] = await Promise.all([
+      const [defaults, available, days] = await Promise.all([
         request<AllocationDefault>(`/api/v1/allocations/default?as_of=${current}`),
-        request<Monthly[]>('/api/v1/allocations/monthly?limit=100'),
+        request<string[]>('/api/v1/allocations/monthly/months'),
         request<Daily[]>(`/api/v1/pnl/daily?start=${current}-01&end=${monthEnd(current)}&limit=1000`),
       ])
-      setActiveDefault(defaults); setConfig(clone(defaults.configuration)); setMonthly(months); setDaily(days); setDirty(false)
+      setActiveDefault(defaults); setConfig(clone(defaults.configuration)); setMonths(available); setDaily(days); setDirty(false)
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not load the allocations service.') }
     finally { setLoading(false) }
   }, [current])
 
   useEffect(() => { void load() }, [load])
-  const snapshot = monthly.find(item => item.allocation_month.slice(0, 7) === selected)
-  const availableMonths = useMemo(() => [...new Set([current, ...monthly.map(item => item.allocation_month.slice(0, 7))])].sort().reverse(), [current, monthly])
+  useEffect(() => {
+    const controller = new AbortController()
+    if (selected === current) {
+      setSummary(null); setSummaryError('')
+      void request<OperatingSummary>(`/api/v1/allocations/monthly/${current}/operating-summary`, { signal: controller.signal })
+        .then(value => { if (!controller.signal.aborted) setSummary(value) })
+        .catch(() => { if (!controller.signal.aborted) setSummaryError('Prior balances could not be loaded. Please retry.') })
+    } else {
+      setMonthState({ month: selected })
+      void request<MonthDetail>(`/api/v1/allocations/monthly/${selected}`, { signal: controller.signal })
+        .then(snapshot => { if (!controller.signal.aborted) setMonthState({ month: selected, snapshot }) })
+        .catch(() => { if (!controller.signal.aborted) setMonthState({ month: selected, error: `Could not load ${monthLabel(selected)}. Please retry.` }) })
+    }
+    return () => controller.abort()
+  }, [selected, current, monthRetry])
+  const snapshot = monthState.month === selected ? monthState.snapshot : undefined
+  const monthError = monthState.month === selected ? monthState.error : undefined
+  const availableMonths = useMemo(() => [...new Set([current, ...months])].sort().reverse(), [current, months])
   const configurationValid = config ? config.distribution.reduce((sum, item) => sum + numeric(item.percentage), 0) === 100 && config.distribution.every(item => !item.children?.length || item.children.reduce((sum, child) => sum + numeric(child.percentage), 0) === 100) : false
   const update = (next: Config) => { setConfig(next); setDirty(true); setSaved(false) }
 
@@ -82,14 +97,16 @@ export default function Funds() {
     finally { setSaving(false) }
   }
 
-  if (loading) return <State icon={<LoaderCircle className="spin" />} title="Loading fund management" detail="Reading allocation defaults, monthly snapshots, and daily P&L…" />
+  if (loading) return <State icon={<LoaderCircle className="spin" />} title="Loading fund management" detail="Reading allocation defaults, available months, and daily P&L…" />
   if (!config || !activeDefault) return <State icon={<AlertCircle />} title="Allocations API unavailable" detail={error || 'No allocation default was returned.'} action={<button className="primary-button" onClick={() => void load()}><RefreshCw size={15} /> Retry</button>} />
 
   return <>
     <section className="fund-title-row"><div><span className="eyebrow">Live fund operations</span><h1>Fund management</h1><p>Bookkeeping and allocation data from the Fund Management API.</p></div><div className="api-connected"><Cloud size={15} /><span>API connected</span><small>Default v{activeDefault.version}</small></div></section>
     <section className="month-switcher fund-api-months">{availableMonths.map(value => <button key={value} className={selected === value ? 'active' : ''} onClick={() => setSelected(value)}>{monthLabel(value)}{value === current ? ' · Current' : ''}</button>)}</section>
     {error && <div className="api-warning"><AlertCircle size={16} /><span>{error}</span><button onClick={() => setError('')}>Dismiss</button></div>}
-    {selected === current ? <CurrentMonth daily={daily} monthly={monthly} config={config} activeDefault={activeDefault} onChange={update} /> : snapshot ? <MonthlySnapshot snapshot={snapshot} monthly={monthly} /> : <State icon={<AlertCircle />} title="No monthly snapshot" detail={`The API has no allocation snapshot for ${monthLabel(selected)}.`} />}
+    {selected === current && (summaryError || summary?.status === 'unavailable') && <div className="api-warning"><AlertCircle size={16} /><span>{summaryError || (summary?.status === 'unavailable' ? summary.reason : '')}</span><button onClick={() => setMonthRetry(value => value + 1)}>Retry balances</button></div>}
+    {selected === current && !summary && !summaryError && <p role="status">Loading prior balances…</p>}
+    {selected === current ? <CurrentMonth daily={daily} summary={summary} config={config} activeDefault={activeDefault} onChange={update} /> : snapshot ? <MonthlySnapshot snapshot={snapshot} /> : monthError ? <State icon={<AlertCircle />} title="Month unavailable" detail={monthError} action={<button className="primary-button" onClick={() => setMonthRetry(value => value + 1)}>Retry</button>} /> : <State icon={<LoaderCircle className="spin" />} title={`Loading ${monthLabel(selected)}`} detail="Reading this month’s bookkeeping…" />}
     {selected === current && (dirty || saved) && <div className={`save-dock ${saved ? 'success' : ''}`}>{saved ? <><Check size={17} /><b>Default version {activeDefault.version} published</b></> : <><span>{configurationValid ? 'Unsaved default changes' : 'Allocation totals need attention'}</span><button onClick={() => { setConfig(clone(activeDefault.configuration)); setDirty(false) }}>Discard</button><button className="save" disabled={saving || !configurationValid} onClick={() => void publish()}>{saving ? <LoaderCircle className="spin" size={14} /> : <Save size={14} />}{saving ? 'Publishing…' : 'Publish new default'}</button></>}</div>}
   </>
 }
@@ -98,18 +115,16 @@ function State({ icon, title, detail, action }: { icon: React.ReactNode; title: 
   return <section className="fund-state">{icon}<h2>{title}</h2><p>{detail}</p>{action}</section>
 }
 
-function CurrentMonth({ daily, monthly, config, activeDefault, onChange }: { daily: Daily[]; monthly: Monthly[]; config: Config; activeDefault: AllocationDefault; onChange: (value: Config) => void }) {
+function CurrentMonth({ daily, summary, config, activeDefault, onChange }: { daily: Daily[]; summary: OperatingSummary | null; config: Config; activeDefault: AllocationDefault; onChange: (value: Config) => void }) {
   const [highlightedAllocation, setHighlightedAllocation] = useState<string | null>(null)
   const gross = daily.reduce((sum, row) => sum + numeric(row.realized_pnl), 0)
   const commissions = daily.reduce((sum, row) => sum + numeric(row.total_commission), 0)
   const activeDays = daily.filter(row => numeric(row.realized_pnl) !== 0 || numeric(row.total_commission) !== 0).length
   const current = monthKey()
-  const priorMonths = monthly.filter(item => item.allocation_month.slice(0, 7) < current).sort((a, b) => a.allocation_month.localeCompare(b.allocation_month))
-  const latestPriorMonth = priorMonths.at(-1)?.allocation_month.slice(0, 7)
-  const priorLossCarryforward = latestPriorMonth ? cumulativeLossCarryforward(priorMonths, latestPriorMonth) : 0
-  const priorPnl = -priorLossCarryforward
-  const yearToDatePnl = priorMonths.filter(item => item.allocation_month.startsWith(current.slice(0, 4))).reduce((sum, item) => sum + numeric(item.gross_profit), gross)
-  const availableLeverageCash = LEVERAGE_STARTING_CASH + priorPnl + gross
+  const latestPriorMonth = summary?.latest_prior_month
+  const priorPnl = summary?.status === 'available' ? -numeric(summary.opening_loss_carryforward) : null
+  const yearToDatePnl = summary?.status === 'available' ? numeric(summary.ytd_prior_months.gross_profit) + gross : null
+  const availableLeverageCash = priorPnl === null ? null : LEVERAGE_STARTING_CASH + priorPnl + gross
   const total = config.distribution.reduce((sum, item) => sum + numeric(item.percentage), 0)
   const expenseTotal = config.fixedExpenses.reduce((sum, item) => sum + numeric(item.amount), 0)
   const etf = config.distribution.find(item => item.id === 'reinvest_etf')
@@ -120,8 +135,8 @@ function CurrentMonth({ daily, monthly, config, activeDefault, onChange }: { dai
   const setChild = (id: string, patch: Partial<Child>) => etf && setDistribution(etf.id, { children: (etf.children || []).map(item => item.id === id ? { ...item, ...patch } : item) })
 
   return <>
-    <section className="current-month-band api-current-band"><div className="api-profit-summary"><div><span className="eyebrow">Month to date · {monthLabel(current)}</span><strong>{cash(gross)}</strong><p>{activeDays} trading days reported by the API</p></div><div><span className="eyebrow">Year to date · {current.slice(0, 4)}</span><strong>{cash(yearToDatePnl)}</strong><p>Monthly bookkeeping plus current MTD</p></div></div><div className="api-current-stats"><span>Commissions<b>{cash(commissions)}</b></span><span>Latest day<b>{daily.length ? dayLabel(daily.at(-1)!.trading_day) : '—'}</b></span><span>Default effective<b>{monthLabel(activeDefault.effective_from)}</b></span></div></section>
-    <section className="leverage-cash-card" aria-label="Leverage cash"><div className="leverage-cash-copy"><span className="eyebrow">Capital availability</span><h2>Leverage cash</h2><p>Cash available after carried profit and loss.</p></div><div className="leverage-cash-metric"><span>Opening cash</span><b>{cash(LEVERAGE_STARTING_CASH)}</b></div><div className="leverage-cash-metric"><span>{latestPriorMonth ? `Prior P&L · through ${fullDateLabel(monthEnd(latestPriorMonth))}` : 'Prior P&L'}</span><b className={priorPnl < 0 ? 'loss-text' : priorPnl > 0 ? 'profit-text' : ''}>{signedCash(priorPnl)}</b></div><div className="leverage-cash-metric"><span>{monthLabel(current)} MTD</span><b className={gross < 0 ? 'loss-text' : gross > 0 ? 'profit-text' : ''}>{signedCash(gross)}</b></div><div className="leverage-cash-total"><span>Available now</span><strong>{cash(availableLeverageCash)}</strong></div></section>
+    <section className="current-month-band api-current-band"><div className="api-profit-summary"><div><span className="eyebrow">Month to date · {monthLabel(current)}</span><strong>{cash(gross)}</strong><p>{activeDays} trading days reported by the API</p></div><div><span className="eyebrow">Year to date · {current.slice(0, 4)}</span><strong>{yearToDatePnl === null ? '—' : cash(yearToDatePnl)}</strong><p>Monthly bookkeeping plus current MTD</p></div></div><div className="api-current-stats"><span>Commissions<b>{cash(commissions)}</b></span><span>Latest day<b>{daily.length ? dayLabel(daily.at(-1)!.trading_day) : '—'}</b></span><span>Default effective<b>{monthLabel(activeDefault.effective_from)}</b></span></div></section>
+    <section className="leverage-cash-card" aria-label="Leverage cash"><div className="leverage-cash-copy"><span className="eyebrow">Capital availability</span><h2>Leverage cash</h2><p>Cash available after carried profit and loss.</p></div><div className="leverage-cash-metric"><span>Opening cash</span><b>{cash(LEVERAGE_STARTING_CASH)}</b></div><div className="leverage-cash-metric"><span>{latestPriorMonth ? `Prior P&L · through ${fullDateLabel(monthEnd(latestPriorMonth))}` : 'Prior P&L'}</span><b className={priorPnl !== null && priorPnl < 0 ? 'loss-text' : ''}>{priorPnl === null ? '—' : signedCash(priorPnl)}</b></div><div className="leverage-cash-metric"><span>{monthLabel(current)} MTD</span><b className={gross < 0 ? 'loss-text' : gross > 0 ? 'profit-text' : ''}>{signedCash(gross)}</b></div><div className="leverage-cash-total"><span>Available now</span><strong>{availableLeverageCash === null ? '—' : cash(availableLeverageCash)}</strong></div></section>
     <section className="two-column fund-current-grid"><article className="card"><div className="card-heading"><div><span className="eyebrow">Realized profit by day</span><h2>Daily P&amp;L</h2></div><span className="record-count">{daily.length} rows</span></div><div className="api-daily-list">{daily.slice().reverse().map(row => <div className="simple-ledger-row" key={row.trading_day}><span>{dayLabel(row.trading_day)}<small>Commission {cash(row.total_commission)}</small></span><b className={numeric(row.realized_pnl) < 0 ? 'loss-text' : 'profit-text'}>{cash(row.realized_pnl)}</b></div>)}</div></article><article className="card api-config-summary"><span className="eyebrow">Active configuration</span><h2>{activeDefault.configuration_name}</h2><p>Version {activeDefault.version}, effective {monthLabel(activeDefault.effective_from)}. Publishing changes creates a new immutable version effective this month.</p><div><span>Closeout period<b>{config.closeoutDays} days</b></span><span>Fixed expenses<b>{cash(expenseTotal)}</b></span><span>Allocation total<b className={total === 100 ? 'profit-text' : 'loss-text'}>{total}%</b></span><span>Currency<b>{config.currency}</b></span></div></article></section>
     <section className="bookkeeping-grid api-default-editor"><article className="card bookkeeping-card"><div className="card-heading"><div><span className="eyebrow">Default configuration</span><h2>Tax rules</h2></div><button className="small-button" onClick={() => onChange({ ...config, taxes: [...config.taxes, { id: `tax_${Date.now()}`, label: 'New tax', basis: { kind: 'total_profit' }, ratePercentage: '0' }] })}><Plus size={13} /> Add</button></div>{config.taxes.map(tax => <div className="edit-ledger-row api-tax-row" key={tax.id}><div><input value={tax.label} onChange={event => setTax(tax.id, { label: event.target.value })} /><select value={tax.basis.kind === 'total_profit' ? '100' : tax.basis.percentage} onChange={event => setTax(tax.id, { basis: event.target.value === '100' ? { kind: 'total_profit' } : { kind: 'profit_portion', percentage: event.target.value } })}><option value="60">60% of profit</option><option value="40">40% of profit</option><option value="100">Total profit</option></select></div><label><input type="number" min="0" max="100" step="0.1" value={tax.ratePercentage} onChange={event => setTax(tax.id, { ratePercentage: event.target.value })} />%</label><button className="delete-button" onClick={() => onChange({ ...config, taxes: config.taxes.filter(item => item.id !== tax.id) })}><Trash2 size={14} /></button></div>)}</article><article className="card bookkeeping-card"><div className="card-heading"><div><span className="eyebrow">Default configuration</span><h2>Fixed expenses</h2></div><button className="small-button" onClick={() => onChange({ ...config, fixedExpenses: [...config.fixedExpenses, { id: `expense_${Date.now()}`, label: 'New expense', amount: '0.00' }] })}><Plus size={13} /> Add</button></div>{config.fixedExpenses.map(expense => <div className="edit-ledger-row expense" key={expense.id}><input value={expense.label} onChange={event => setExpense(expense.id, { label: event.target.value })} /><label>$<input type="number" min="0" step="0.01" value={expense.amount} onChange={event => setExpense(expense.id, { amount: event.target.value })} /></label><button className="delete-button" onClick={() => onChange({ ...config, fixedExpenses: config.fixedExpenses.filter(item => item.id !== expense.id) })}><Trash2 size={14} /></button></div>)}<div className="ledger-total"><span>Monthly expense total</span><strong>{cash(expenseTotal)}</strong></div></article></section>
     <section className="card allocation-section api-allocation-editor"><div className="card-heading"><div><span className="eyebrow">Default configuration</span><h2>Distribution plan</h2></div><div className="allocation-status"><span className={total === 100 ? 'valid' : 'invalid'}>{total}% total</span></div></div><p className="section-note">These percentages become the default for future monthly snapshots. Existing months remain unchanged.</p><div className="allocation-layout"><AllocationDonut items={config.distribution} total={total} highlightedId={highlightedAllocation} onHighlight={setHighlightedAllocation} /><div className="allocation-list detailed">{config.distribution.map(item => { const highlighted = highlightedAllocation === item.id; return <div className={`allocation-row ${highlighted ? 'is-highlighted' : ''}`} style={highlighted ? { borderLeftColor: item.color } : undefined} onMouseEnter={() => setHighlightedAllocation(item.id)} onMouseLeave={() => setHighlightedAllocation(null)} key={item.id}><i style={{ background: item.color }} /><div><b>{item.label}</b><span>{item.transferToBank ? 'Transfers to bank' : item.rollsIntoNextMonth ? 'Rolls forward' : 'Retained / invested'}</span></div><input type="number" min="0" max="100" value={item.percentage} onFocus={() => setHighlightedAllocation(item.id)} onBlur={() => setHighlightedAllocation(null)} onChange={event => setDistribution(item.id, { percentage: event.target.value })} /><em>%</em></div> })}</div></div>{total !== 100 && <div className="error-banner"><AlertCircle size={16} /> Allocation percentages must total exactly 100% before publishing.</div>}{etf && <div className="etf-split"><div className="card-heading"><div><span className="eyebrow">Inside reinvest in ETF</span><h3>ETF sub-allocation</h3></div><div className="allocation-status"><span className={etfTotal === 100 ? 'valid' : 'invalid'}>{etfTotal}% split</span><button className="small-button" onClick={() => setDistribution(etf.id, { children: [...(etf.children || []), { id: `etf_${Date.now()}`, ticker: 'NEW', label: 'New fund', percentage: '0' }] })}><Plus size={13} /> Add ETF</button></div></div>{etf.children?.map(child => <div className="etf-row api-etf-row" key={child.id}><i style={{ background: etf.color }} /><input className="ticker-input" value={child.ticker || ''} onChange={event => setChild(child.id, { ticker: event.target.value })} /><div><input value={child.label} onChange={event => setChild(child.id, { label: event.target.value })} /></div><label><input type="number" min="0" max="100" value={child.percentage} onChange={event => setChild(child.id, { percentage: event.target.value })} />%</label><button className="delete-button" onClick={() => setDistribution(etf.id, { children: etf.children?.filter(item => item.id !== child.id) })}><Trash2 size={14} /></button></div>)}</div>}</section>
@@ -140,11 +155,12 @@ function AllocationDonut({ items, total, highlightedId, onHighlight }: { items: 
   return <div className={`allocation-donut interactive ${highlightedId ? 'has-highlight' : ''}`}><svg viewBox="0 0 100 100" role="img" aria-label="Distribution allocation pie chart"><circle className="donut-track" cx="50" cy="50" r="38" pathLength="100" /><g transform="rotate(-90 50 50)">{slices.map(({ item, start, size }) => <circle key={item.id} className={`donut-slice ${highlightedId === item.id ? 'is-highlighted' : ''}`} cx="50" cy="50" r="38" pathLength="100" stroke={item.color} strokeDasharray={`${Math.max(size - 0.35, 0.1)} ${100 - Math.max(size - 0.35, 0.1)}`} strokeDashoffset={-start} tabIndex={0} aria-label={`${item.label}: ${item.percentage}%`} onMouseEnter={() => onHighlight(item.id)} onMouseLeave={() => onHighlight(null)} onFocus={() => onHighlight(item.id)} onBlur={() => onHighlight(null)}><title>{item.label}: {item.percentage}%</title></circle>)}</g></svg><div><b>{total}%</b><span>{highlightedId ? items.find(item => item.id === highlightedId)?.label : total === 100 ? 'Ready to publish' : 'Adjust total'}</span></div></div>
 }
 
-function MonthlySnapshot({ snapshot, monthly }: { snapshot: Monthly; monthly: Monthly[] }) {
+function MonthlySnapshot({ snapshot }: { snapshot: MonthDetail }) {
   const state = snapshot.allocation_state
   const distribution = state.distribution || []
-  const loss = cumulativeLossCarryforward(monthly, snapshot.allocation_month.slice(0, 7))
-  return <><section className={`closed-month-band api-snapshot-band ${numeric(snapshot.gross_profit) < 0 ? 'negative' : ''}`}><div><span>Gross realized profit · {monthLabel(snapshot.allocation_month)}</span><strong>{cash(snapshot.gross_profit)}</strong><small>{state.source?.tradingDayCount || 0} trading days · calculation v{snapshot.calculation_version}</small></div><div><span>Total tax<b>{cash(snapshot.total_tax)}</b></span><span>After tax<b>{cash(snapshot.after_tax_profit)}</b></span><span>Fixed expenses<b>{cash(snapshot.fixed_expenses)}</b></span><span>Remaining profit<b>{cash(snapshot.remaining_profit)}</b></span></div><aside><span>Transfer to bank</span><strong>{cash(snapshot.transfer_to_bank)}</strong><small className={`snapshot-status ${snapshot.status.toLowerCase()}`}>{snapshot.status}</small></aside></section>{loss > 0 && <div className="carry-banner"><AlertCircle size={18} /><div><b>Loss carried forward</b><span>{cash(loss)} remains to be recovered by a future profitable month.</span></div></div>}<section className="bookkeeping-grid snapshot-details"><article className="card"><div className="card-heading"><div><span className="eyebrow">API calculation</span><h2>Taxes</h2></div><span className="record-count">Default v{snapshot.default_version_id}</span></div>{(state.taxes || []).map(tax => <div className="snapshot-row" key={tax.id}><div><b>{tax.label}</b><span>{tax.basis.kind === 'total_profit' ? 'Total profit' : `${tax.basis.percentage}% profit portion`} · {tax.ratePercentage}%</span></div><strong>{cash(tax.amount)}</strong></div>)}<div className="ledger-total"><span>Total tax</span><strong>{cash(snapshot.total_tax)}</strong></div></article><article className="card"><div className="card-heading"><div><span className="eyebrow">API calculation</span><h2>Fixed expenses</h2></div></div>{(state.fixedExpenses || []).map(expense => <div className="snapshot-row" key={expense.id}><b>{expense.label}</b><strong>{cash(expense.amount)}</strong></div>)}<div className="ledger-total"><span>Total fixed expenses</span><strong>{cash(snapshot.fixed_expenses)}</strong></div></article></section><section className="card allocation-section snapshot-allocation"><div className="card-heading"><div><span className="eyebrow">Recorded monthly snapshot</span><h2>Distribution</h2></div><span className="read-only-chip">Read only</span></div><div className="allocation-layout"><div className="allocation-donut" style={{ background: gradient(distribution) }}><div><b>{distribution.reduce((sum, item) => sum + numeric(item.percentage), 0)}%</b><span>{cash(state.distributionBase)}</span></div></div><div className="snapshot-distribution">{distribution.map(item => <div className="snapshot-row" key={item.id}><i style={{ background: item.color }} /><div><b>{item.label}</b><span>{item.percentage}%{item.children?.length ? ` · ${item.children.map(child => `${child.ticker} ${child.percentage}%`).join(' · ')}` : ''}</span></div><strong>{cash(item.amount)}</strong></div>)}</div></div></section></>
+  const summary = snapshot.operating_summary
+  const loss = summary?.status === 'available' ? numeric(summary.closing_loss_carryforward) : null
+  return <>{loss === null && <div className="api-warning"><AlertCircle size={16} /><span>Loss carryforward unavailable. {summary?.status === 'unavailable' ? summary.reason : 'Please refresh after the summary service is available.'}</span></div>}<section className={`closed-month-band api-snapshot-band ${numeric(snapshot.gross_profit) < 0 ? 'negative' : ''}`}><div><span>Gross realized profit · {monthLabel(snapshot.allocation_month)}</span><strong>{cash(snapshot.gross_profit)}</strong><small>{state.source?.tradingDayCount || 0} trading days · calculation v{snapshot.calculation_version}</small></div><div><span>Total tax<b>{cash(snapshot.total_tax)}</b></span><span>After tax<b>{cash(snapshot.after_tax_profit)}</b></span><span>Fixed expenses<b>{cash(snapshot.fixed_expenses)}</b></span><span>Remaining profit<b>{cash(snapshot.remaining_profit)}</b></span></div><aside><span>Transfer to bank</span><strong>{cash(snapshot.transfer_to_bank)}</strong><small className={`snapshot-status ${snapshot.status.toLowerCase()}`}>{snapshot.status}</small></aside></section>{loss !== null && loss > 0 && <div className="carry-banner"><AlertCircle size={18} /><div><b>Loss carried forward</b><span>{cash(loss)} remains to be recovered by a future profitable month.</span></div></div>}<section className="bookkeeping-grid snapshot-details"><article className="card"><div className="card-heading"><div><span className="eyebrow">API calculation</span><h2>Taxes</h2></div><span className="record-count">Default v{snapshot.default_version_id}</span></div>{(state.taxes || []).map(tax => <div className="snapshot-row" key={tax.id}><div><b>{tax.label}</b><span>{tax.basis.kind === 'total_profit' ? 'Total profit' : `${tax.basis.percentage}% profit portion`} · {tax.ratePercentage}%</span></div><strong>{cash(tax.amount)}</strong></div>)}<div className="ledger-total"><span>Total tax</span><strong>{cash(snapshot.total_tax)}</strong></div></article><article className="card"><div className="card-heading"><div><span className="eyebrow">API calculation</span><h2>Fixed expenses</h2></div></div>{(state.fixedExpenses || []).map(expense => <div className="snapshot-row" key={expense.id}><b>{expense.label}</b><strong>{cash(expense.amount)}</strong></div>)}<div className="ledger-total"><span>Total fixed expenses</span><strong>{cash(snapshot.fixed_expenses)}</strong></div></article></section><section className="card allocation-section snapshot-allocation"><div className="card-heading"><div><span className="eyebrow">Recorded monthly snapshot</span><h2>Distribution</h2></div><span className="read-only-chip">Read only</span></div><div className="allocation-layout"><div className="allocation-donut" style={{ background: gradient(distribution) }}><div><b>{distribution.reduce((sum, item) => sum + numeric(item.percentage), 0)}%</b><span>{cash(state.distributionBase)}</span></div></div><div className="snapshot-distribution">{distribution.map(item => <div className="snapshot-row" key={item.id}><i style={{ background: item.color }} /><div><b>{item.label}</b><span>{item.percentage}%{item.children?.length ? ` · ${item.children.map(child => `${child.ticker} ${child.percentage}%`).join(' · ')}` : ''}</span></div><strong>{cash(item.amount)}</strong></div>)}</div></div></section></>
 }
 
 function gradient(items: Distribution[]) {
