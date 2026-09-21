@@ -1,0 +1,27 @@
+.performance-page .hero-row{align-items:center}
+.performance-range{font-size:12px;color:var(--muted);margin:0 0 18px;line-height:1.6}
+.performance-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.performance-metric{border:1px solid var(--border);border-radius:17px;background:var(--card);padding:20px;min-width:0}
+.performance-metric h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 12px}
+.performance-metric strong{display:block;font-size:28px;letter-spacing:-.03em;overflow-wrap:anywhere}
+.performance-metric p{font-size:12px;color:var(--muted);line-height:1.5;margin:10px 0 0}
+.performance-metric small{display:block;color:var(--muted);font-size:11px;margin-top:6px}
+.performance-metric dl{margin:16px 0 0;border-top:1px solid var(--border)}
+.performance-metric dl>div{display:flex;justify-content:space-between;gap:12px;padding-top:10px;font-size:12px}
+.performance-metric dt{color:var(--muted)}
+.performance-metric dd{margin:0;text-align:right}
+.performance-table-wrap{overflow-x:auto}
+.performance-table{border-collapse:collapse;width:100%;min-width:600px;text-align:left;font-size:13px}
+.performance-table th{padding:12px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border)}
+.performance-table td{padding:16px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+.performance-table td strong{display:block;font-size:17px}
+.performance-table small{display:block;color:var(--muted);font-size:11px;margin-top:5px;max-width:290px;line-height:1.45}
+.performance-inflation{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:20px 0}
+.performance-inflation label{display:grid;gap:7px;font-size:12px;color:var(--muted)}
+.performance-inflation input{padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--ink);width:180px}
+.performance-notes{font-size:12px;line-height:1.7;color:var(--muted)}
+.performance-notes summary{cursor:pointer;font-weight:600;color:var(--ink)}
+.performance-notes ul{padding-left:20px}
+.performance-status{padding:24px;color:var(--muted);border:1px solid var(--border);border-radius:15px}
+@media(max-width:950px){.performance-grid{grid-template-columns:1fr 1fr}.performance-grid>.performance-metric:last-child{grid-column:1/-1}}
+@media(max-width:620px){.performance-grid{grid-template-columns:1fr}.performance-metric strong{font-size:25px}.performance-page .hero-row{align-items:flex-start;flex-direction:column}}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertCircle, Check, Cloud, LoaderCircle, Plus, RefreshCw, Save, Trash2 } from 'lucide-react'
+import TaxSummaryPanel, { type TaxSummary } from './TaxSummary'
 
 const API_URL = (import.meta.env.VITE_ALLOCATIONS_API_URL || 'http://localhost:7810').replace(/\/$/, '')
 
@@ -16,7 +17,7 @@ type OperatingSummary = { latest_prior_month: string | null } & (
   { status: 'available'; opening_loss_carryforward: string; closing_loss_carryforward: string; ytd_prior_months: { gross_profit: string } } |
   { status: 'unavailable'; reason: string }
 )
-type MonthDetail = Monthly & { operating_summary?: OperatingSummary }
+type MonthDetail = Monthly & { operating_summary?: OperatingSummary; assumed_tax_summary?: TaxSummary }
 
 const monthKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` }
 const monthEnd = (month: string) => { const [y, m] = month.split('-').map(Number); return `${month}-${new Date(y, m, 0).getDate()}` }
@@ -106,6 +107,7 @@ export default function Funds() {
     {error && <div className="api-warning"><AlertCircle size={16} /><span>{error}</span><button onClick={() => setError('')}>Dismiss</button></div>}
     {selected === current && (summaryError || summary?.status === 'unavailable') && <div className="api-warning"><AlertCircle size={16} /><span>{summaryError || (summary?.status === 'unavailable' ? summary.reason : '')}</span><button onClick={() => setMonthRetry(value => value + 1)}>Retry balances</button></div>}
     {selected === current && !summary && !summaryError && <p role="status">Loading prior balances…</p>}
+    {(selected === current || snapshot) && <TaxSummaryPanel key={selected} year={Number(selected.slice(0, 4))} historical={selected !== current} snapshot={snapshot?.assumed_tax_summary} />}
     {selected === current ? <CurrentMonth daily={daily} summary={summary} config={config} activeDefault={activeDefault} onChange={update} /> : snapshot ? <MonthlySnapshot snapshot={snapshot} /> : monthError ? <State icon={<AlertCircle />} title="Month unavailable" detail={monthError} action={<button className="primary-button" onClick={() => setMonthRetry(value => value + 1)}>Retry</button>} /> : <State icon={<LoaderCircle className="spin" />} title={`Loading ${monthLabel(selected)}`} detail="Reading this month’s bookkeeping…" />}
     {selected === current && (dirty || saved) && <div className={`save-dock ${saved ? 'success' : ''}`}>{saved ? <><Check size={17} /><b>Default version {activeDefault.version} published</b></> : <><span>{configurationValid ? 'Unsaved default changes' : 'Allocation totals need attention'}</span><button onClick={() => { setConfig(clone(activeDefault.configuration)); setDirty(false) }}>Discard</button><button className="save" disabled={saving || !configurationValid} onClick={() => void publish()}>{saving ? <LoaderCircle className="spin" size={14} /> : <Save size={14} />}{saving ? 'Publishing…' : 'Publish new default'}</button></>}</div>}
   </>
