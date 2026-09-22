@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { equityPoints, trades } from './data'
 import Funds from './Funds'
+import Performance from './Performance'
 
 type Screen = 'dashboard' | 'strategy' | 'positions' | 'analytics' | 'journal' | 'funds'
 const money = (value: number) => `${value < 0 ? '−' : ''}$${Math.abs(value).toLocaleString()}`
@@ -186,8 +187,7 @@ function Positions() {
 }
 
 function Analytics() {
-  const setups = [{ name: 'Iron Condor', win: 78, pnl: 2565 }, { name: 'Put Credit Spread', win: 67, pnl: 1035 }, { name: 'EMA Reclaim', win: 63, pnl: 760 }, { name: 'Call Credit Spread', win: 50, pnl: -130 }]
-  return <><section className="hero-row"><div><span className="eyebrow">Pattern intelligence</span><h1>Analytics</h1><p>Understand where your returns come from and where discipline slips.</p></div></section><section className="two-column wide-left"><article className="card"><div className="card-heading"><div><span className="eyebrow">Setup performance</span><h2>Win rate by playbook</h2></div></div><div className="bar-list">{setups.map(s => <div className="bar-item" key={s.name}><div><b>{s.name}</b><span>{s.win}% · {money(s.pnl)}</span></div><div className="bar-track"><i style={{ width: `${s.win}%` }} /></div></div>)}</div></article><article className="card"><span className="eyebrow">Recurring mistakes</span><h2>Cost of execution leaks</h2><div className="mistake"><TrendingDown /><div><b>Late entries</b><span>3 occurrences</span></div><strong>−$840</strong></div><div className="mistake"><TrendingDown /><div><b>Oversizing</b><span>2 occurrences</span></div><strong>−$610</strong></div><div className="mistake"><TrendingDown /><div><b>Moved stop</b><span>1 occurrence</span></div><strong>−$390</strong></div></article></section></>
+  return <Performance />
 }
 
 function Journal() {
@@ -229,7 +229,7 @@ export default function App() {
         <div className="top-actions"><button className="icon-button" onClick={() => setDark(value => !value)} aria-label="Toggle color theme">{dark ? <Sun /> : <Moon />}</button><button className="import-button"><Download size={16} /> Import trades</button></div>
       </header>
       <main>{content}</main>
-      <footer><CircleDollarSign size={15} /> TradeFlow prototype · Data is illustrative and not financial advice.</footer>
+      <footer><CircleDollarSign size={15} /> {screen === 'analytics' || screen === 'funds' ? 'TradeFlow · Data from your local API' : 'TradeFlow prototype · Illustrative data'}</footer>
     </div>
   )
 }
