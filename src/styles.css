@@ -23,3 +23,5 @@
 .allocation-breakdown{margin-bottom:16px}.allocation-breakdown .snapshot-row strong{white-space:nowrap;font-variant-numeric:tabular-nums}
 .allocation-payment-details{margin:0 0 16px}.allocation-payment-details>summary{cursor:pointer;padding:14px 0;color:var(--muted);font-size:13px}.allocation-loss-note{margin:14px 0 0}
 @media(max-width:720px){.allocation-result-band{grid-template-columns:1fr}.allocation-result-band aside{border-left:0;border-top:1px solid rgba(255,255,255,.24);padding:14px 0 0}.allocation-breakdown .snapshot-row{align-items:flex-start}.allocation-breakdown .snapshot-row>div{min-width:0}}
+
+.draft-month-editor{border:0;padding:0;margin:0;min-width:0}.draft-month-editor:disabled{opacity:.65}.draft-month-editor>.api-allocation-editor{margin-bottom:16px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}

@@ -47,8 +47,14 @@ VITE_LEVERAGE_STARTING_CASH=30000 npm run dev
 ```
 
 The page uses the versioned `/api/v1` allocation endpoints. Historical monthly
-snapshots are read-only; publishing configuration changes creates a new default
-version through `POST /api/v1/allocations/defaults`.
+FINAL snapshots are read-only. DRAFT snapshots expose tax rules, fixed expenses,
+distribution percentages, and ETF splits for editing until an explicit
+`editable_until` deadline, when supplied. Saving uses
+`POST /api/v1/allocations/monthly/{YYYY-MM}/configuration` with `configuration`
+and `expected_updated_at`. The API recalculates the month, preserves its override
+through draft refresh and finalization, and leaves defaults unchanged. Stale
+saves and finalized months return a conflict instead of overwriting changes.
+Publishing current-month defaults still uses `POST /api/v1/allocations/defaults`.
 
 ## Performance analytics
 
