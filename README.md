@@ -39,7 +39,13 @@ Start that service before opening the page. To use another API origin:
 VITE_ALLOCATIONS_API_URL=http://localhost:7810 npm run dev
 ```
 
-Leverage cash starts at `$30,000` by default. Override that opening balance when
+Leverage cash adds opening cash, `operating_summary.opening_operating_pnl`, and
+current-month realized P&L. Prior P&L sums saved after-tax profit less fixed
+expenses across all prior months, including previous years. Positive balances
+are retained; it is separate from the loss-only carryforward used for allocations.
+Missing or invalid prior P&L shows unavailable instead of zero. This is a
+bookkeeping balance before distributions, rather than a broker cash balance.
+Opening cash starts at `$30,000` by default. Override that opening balance when
 starting the UI if needed:
 
 ```bash
@@ -47,8 +53,14 @@ VITE_LEVERAGE_STARTING_CASH=30000 npm run dev
 ```
 
 The page uses the versioned `/api/v1` allocation endpoints. Historical monthly
-snapshots are read-only; publishing configuration changes creates a new default
-version through `POST /api/v1/allocations/defaults`.
+FINAL snapshots are read-only. DRAFT snapshots expose tax rules, fixed expenses,
+distribution percentages, and ETF splits for editing until an explicit
+`editable_until` deadline, when supplied. Saving uses
+`POST /api/v1/allocations/monthly/{YYYY-MM}/configuration` with `configuration`
+and `expected_updated_at`. The API recalculates the month, preserves its override
+through draft refresh and finalization, and leaves defaults unchanged. Stale
+saves and finalized months return a conflict instead of overwriting changes.
+Publishing current-month defaults still uses `POST /api/v1/allocations/defaults`.
 
 ## Performance analytics
 

@@ -30,10 +30,10 @@ export default function TaxSummaryPanel({ year, historical, snapshot }: { year: 
   const unavailable = summary?.status === 'unavailable' ? summary.reason : error
   const balance = summary && summary.status !== 'unavailable' && summary.calculation_method === 'configured_rate_ytd_assumed_payments' ? summary.current : null
 
-  return <section className="card tax-summary" aria-label="Tax payments">
-    <div className="card-heading"><div><span className="eyebrow">Tax year {taxYear}{balance ? ` · through ${dateLabel(balance.as_of)}` : ''}</span><h2>Tax payments</h2></div>{historical ? <span className="read-only-chip">Historical view</span> : <div className="tax-summary-actions"><label>Tax year <select aria-label="Tax year" value={taxYear} onChange={event => { setLoaded(null); setTaxYear(Number(event.target.value)) }}><option value={year}>{year}</option><option value={year - 1}>{year - 1}</option></select></label><button className="small-button" onClick={() => setRevision(value => value + 1)}>Refresh taxes</button></div>}</div>
+  return <section className="card tax-summary" aria-label="YTD tax payment estimate">
+    <div className="card-heading"><div><span className="eyebrow">Tax year {taxYear}{balance ? ` · through ${dateLabel(balance.as_of)}` : ''}</span><h2>YTD tax payment estimate</h2></div>{historical ? <span className="read-only-chip">Historical view</span> : <div className="tax-summary-actions"><label>Tax year <select aria-label="Tax year" value={taxYear} onChange={event => { setLoaded(null); setTaxYear(Number(event.target.value)) }}><option value={year}>{year}</option><option value={year - 1}>{year - 1}</option></select></label><button className="small-button" onClick={() => setRevision(value => value + 1)}>Refresh taxes</button></div>}</div>
     {unavailable ? <p role="alert">Tax summary unavailable. {unavailable}</p> : !balance ? <p role="status">{historical || summary ? 'Assumed tax summary unavailable for this period.' : 'Loading tax balances…'}</p> : <>
-      <p className="section-note">Based on net year-to-date trading profit and your configured tax rates, including earlier losses. Earlier period payments are assumed paid after their scheduled dates. No actual payments are tracked in this view.</p>
+      <p className="section-note">Based on net year-to-date trading profit and your configured tax rates, including earlier trading losses. Fixed costs do not reduce this tax base. Earlier period payments are assumed paid after their scheduled dates. No actual payments are tracked in this view.</p>
       {balance.authorities.length === 0 && <p>No tax authorities are available.</p>}
       {balance.authorities.map(authority => {
         return <article className="tax-authority" key={authority.authority}>
