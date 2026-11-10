@@ -39,7 +39,13 @@ Start that service before opening the page. To use another API origin:
 VITE_ALLOCATIONS_API_URL=http://localhost:7810 npm run dev
 ```
 
-Leverage cash starts at `$30,000` by default. Override that opening balance when
+Leverage cash adds opening cash, `operating_summary.opening_operating_pnl`, and
+current-month realized P&L. Prior P&L sums saved after-tax profit less fixed
+expenses across all prior months, including previous years. Positive balances
+are retained; it is separate from the loss-only carryforward used for allocations.
+Missing or invalid prior P&L shows unavailable instead of zero. This is a
+bookkeeping balance before distributions, rather than a broker cash balance.
+Opening cash starts at `$30,000` by default. Override that opening balance when
 starting the UI if needed:
 
 ```bash
